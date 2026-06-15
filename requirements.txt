@@ -1,0 +1,19 @@
+# core
+torch>=2.4
+torchvision
+einops>=0.8
+
+# pretrained ViT + attention extraction
+timm>=1.0
+
+# numerics / utils
+numpy
+scipy
+pyyaml
+tqdm
+
+# visualization
+matplotlib
+
+# dev
+pytest
