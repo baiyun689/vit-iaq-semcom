@@ -19,8 +19,8 @@
 
 ## 复现路线图（逐步进行）
 
-- [ ] **Step 1 — 项目骨架**（当前）
-- [ ] Step 2 — 加载预训练 ViT，提取 class-token→patch 注意力分数，复现 Fig.3 注意力热图
+- [x] **Step 1 — 项目骨架**
+- [x] Step 2 — 加载预训练 ViT，提取 class-token→patch 注意力分数，复现 Fig.3 注意力热图
 - [ ] Step 3 — patch-wise 均匀量化器 + 量化误差验证
 - [ ] Step 4 — 重要性感知比特分配：增量分配法 + 注水法
 - [ ] Step 5 — 无误码场景端到端：分类精度 vs. 通信开销曲线
@@ -29,12 +29,17 @@
 
 ## 环境
 
-推荐使用 conda 环境 `signal_Gen`（torch 2.6.0+cu118, CUDA）：
+推荐使用 conda 环境 `vit-iaq-semcom`（Python 3.11, torch 2.11.0+cu128, CUDA）：
 
 ```powershell
-conda activate signal_Gen
+conda create -n vit-iaq-semcom python=3.11 -y
+conda activate vit-iaq-semcom
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128
 pip install -r requirements.txt
+pip install -e .
 ```
+
+> torch 走 cu128 轮子（最新驱动 CUDA 13.x 向后兼容可用）；无 GPU 时可改用 CPU 版 torch。
 
 ## 数据集
 

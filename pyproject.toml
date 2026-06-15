@@ -28,3 +28,6 @@ where = ["src"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+markers = [
+  "network: 需要联网（下载 HF 权重/数据集）；离线时跳过",
+]

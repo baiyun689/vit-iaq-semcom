@@ -2,10 +2,19 @@
 
 # ViT encoder (Sec. II)
 model:
-  name: vit_base_patch16_224   # timm 预训练模型
-  pretrained: true
+  arch: vit_base_patch16_224   # timm 基座架构（注意力提取依赖此结构）
+  num_classes: 100
   image_size: 224
   patch_size: 16
+  # device 端 / server 端 encoder 的权重来源（论文图 1）；Step 2 默认两者同一 base。
+  # 取值：
+  #   random     -> 随机初始化（仅测试用，不下载）
+  #   imagenet   -> timm 默认 ImageNet 预训练
+  #   hf:<repo>  -> 从 HF repo 手动加载 pytorch_model.bin（CIFAR-100 fine-tuned, 93.2%）
+  # 注：edadaltocg 这个 repo 的 hf_hub: 自动加载在 timm>=1.0 下因架构名不被识别而失败，
+  #     故用 hf: 方案手动 load_state_dict（已验证 0 missing/unexpected）。
+  device_weights: hf:edadaltocg/vit_base_patch16_224_in21k_ft_cifar100
+  server_weights: hf:edadaltocg/vit_base_patch16_224_in21k_ft_cifar100
 
 # 数据集
 data:
