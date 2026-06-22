@@ -25,8 +25,9 @@
 - [x] Step 4 — 重要性感知比特分配：增量分配法（注水法留作后续对照）
 - [x] Step 5 — 无误码场景端到端：分类精度 vs. 通信开销（干净信道 b_target=980，掉点 <1%）
 - [x] Step 6a — BSC 信道建模 + **创新点 A 元信息性能悬崖**（E1/E2，`outputs/cliff_metadata.png`）
-- [ ] Step 6b — 创新点 A 修复：元信息 UEP/强 FEC + 载荷分级 FEC（E3）
-- [ ] Step 6c — 创新点 C：收端 token 级语义错误隐藏（E4）
+- [x] Step 6b — AWGN 数字信道（BPSK）+ **三线元信息影响实验**（均匀/IAQ理想/IAQ过信道，vs Eb/N0）
+- [ ] Step 6c — 创新点 A 修复：元信息 UEP/强 FEC + 载荷分级 FEC（缩减影响）
+- [ ] Step 6d — 创新点 C：收端 token 级语义错误隐藏（E4）
 - [ ] Step 7 — 多视图任务 (MIRO / MVP-N) + 对比基线
 
 ## 环境

@@ -33,13 +33,15 @@ quantization:
   m_max: 8            # 单 patch 最大量化比特 M_max
   b_target: 980       # 总比特预算 Btarget（对 sum M_i 的约束；196 patch 均值≈5bit，有效压缩）
   weight: attention   # 权重 w(a_i): 注意力分数的递增函数
-  strategy: incremental  # 比特分配策略：incremental（本 change）| water_filling（后续）
+  alloc: incremental  # 比特分配策略：incremental | uniform（同码率基线）| water_filling（后续）
 
 # 信道 (Sec. IV)
 channel:
-  enabled: false              # 关：干净信道（基线）。开：施加 BSC
-  bsc_flip_prob: 0.0          # BSC 翻转概率 mu
-  metadata_through_channel: false  # 关=元信息无损（复现论文）；开=元信息也过 BSC（暴露悬崖）
+  type: awgn                  # awgn（数字过高斯信道，用 ebn0_db）| bsc（抽象翻转，用 bsc_flip_prob）
+  enabled: false              # 关：干净信道（基线）。开：施加信道误码
+  ebn0_db: 6.0                # AWGN 的 Eb/N0(dB)；未编码 BPSK 下 BER=Q(√(2·Eb/N0))
+  bsc_flip_prob: 0.0          # BSC 翻转概率 mu（type=bsc 时用）
+  metadata_through_channel: false  # 关=元信息无损（论文假设）；开=元信息也过信道
 
 seed: 0
 device: cuda

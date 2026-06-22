@@ -57,6 +57,15 @@ def incremental_allocation(
     return m
 
 
+def uniform_allocation(n: int, b_target: int, m_max: int) -> np.ndarray:
+    """均匀分配基线：每 patch 固定 M=⌊B_target/N⌋（与 a_i 无关，同总码率对照）。
+
+    M_i 为常数、先验已知，无需作为脆弱元信息传输——与 IAQ 的关键差异点。
+    """
+    m = min(int(b_target) // int(n), int(m_max))
+    return np.full(n, max(m, 0), dtype=np.int64)
+
+
 def water_filling(*_args, **_kwargs):  # noqa: D401 — 占位
     """注水法（Theorem 1，式 16-17）。后续 change 实现，作增量法对照。"""
     raise NotImplementedError("water_filling 留作后续对照，本 change 用 incremental")
@@ -69,6 +78,8 @@ def allocate(a_i: np.ndarray, b_target: int, m_max: int, cfg: dict | None = None
     weight = cfg.get("weight", "attention")
     if strategy == "incremental":
         return incremental_allocation(a_i, b_target, m_max, weight=weight)
+    if strategy == "uniform":
+        return uniform_allocation(np.asarray(a_i).shape[0], b_target, m_max)
     if strategy == "water_filling":
         return water_filling(a_i, b_target, m_max, weight=weight)
     raise ValueError(f"未知 strategy={strategy!r}")

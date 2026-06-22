@@ -15,7 +15,7 @@ import numpy as np
 import torch
 
 from .bit_allocation import allocate
-from .channel import Packet, apply_channel
+from .channel import Packet, apply_channel, awgn_channel
 from .quantization import (
     bitstream_to_indices,
     quantize_to_bitstream,
@@ -66,19 +66,19 @@ class IAQPipeline:
             m_max=q.get("m_max", 8),
             b_target=q.get("b_target", 980),
             weight=q.get("weight", "attention"),
-            strategy=q.get("strategy", "incremental"),
+            strategy=q.get("alloc", q.get("strategy", "incremental")),
         )
 
     # ---------------------------------------------------------------- device
-    def encode(self, img: np.ndarray, a_i: np.ndarray) -> Packet:
-        """一张图（C,H,W 归一化张量）+ 其 a_i -> Packet。"""
+    def encode(self, img: np.ndarray, a_i: np.ndarray, alloc_cfg: dict | None = None) -> Packet:
+        """一张图（C,H,W 归一化张量）+ 其 a_i -> Packet。alloc_cfg 可覆盖分配策略。"""
         c, h, w = img.shape
         ph, pw = h // self.gh, w // self.gw
         patches = _to_patches(img, self.gh, self.gw)      # (N, P)
         n, p = patches.shape
 
         umin, umax = float(img.min()), float(img.max())
-        m_map = allocate(a_i, self.b_target, self.m_max, self.alloc_cfg)
+        m_map = allocate(a_i, self.b_target, self.m_max, alloc_cfg or self.alloc_cfg)
 
         streams = [
             quantize_to_bitstream(patches[i], int(m_map[i]), umin, umax)
@@ -112,12 +112,20 @@ class IAQPipeline:
         self,
         images: torch.Tensor,
         labels: torch.Tensor | None = None,
+        channel_type: str = "bsc",
         mu: float = 0.0,
+        ebn0_db: float = float("inf"),
         metadata_through_channel: bool = False,
+        alloc: str | None = None,
         seed: int = 0,
     ) -> dict:
-        """images: (B,3,224,224) 预处理后张量。返回 logits/preds/(accuracy)。"""
+        """images: (B,3,224,224) 预处理后张量。返回 logits/preds/(accuracy)。
+
+        channel_type: 'bsc'(用 mu) | 'awgn'(用 ebn0_db)。
+        alloc: 覆盖比特分配策略('incremental'|'uniform'|...)，None 用 pipeline 默认。
+        """
         rng = np.random.default_rng(seed)
+        alloc_cfg = {**self.alloc_cfg, "strategy": alloc} if alloc else None
         a = self.enc.attention_scores(images).cpu().numpy()   # (B, N)
         x = images.cpu().numpy()
         b, c, h, w = x.shape
@@ -125,8 +133,11 @@ class IAQPipeline:
 
         recon = np.empty_like(x)
         for k in range(b):
-            pkt = self.encode(x[k], a[k])
-            pkt = apply_channel(pkt, mu, metadata_through_channel, rng)
+            pkt = self.encode(x[k], a[k], alloc_cfg)
+            if channel_type == "awgn":
+                pkt = awgn_channel(pkt, ebn0_db, metadata_through_channel, rng)
+            else:
+                pkt = apply_channel(pkt, mu, metadata_through_channel, rng)
             patches = self.decode(pkt)
             recon[k] = _from_patches(patches, c, self.gh, self.gw, ph, pw)
 

@@ -19,6 +19,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
+from .modulation import bpsk_awgn
 from .quantization import (
     bits_to_index,
     index_to_bits,
@@ -94,6 +95,33 @@ def apply_channel(
     if metadata_through_channel and mu > 0:
         meta = pack_metadata(packet.m_map, packet.umin, packet.umax, packet.m_max)
         meta = bsc(meta, mu, rng)
+        m_map, umin, umax = unpack_metadata(meta, packet.m_map.shape[0], packet.m_max)
+    else:  # 元信息无损直达
+        m_map, umin, umax = packet.m_map.copy(), packet.umin, packet.umax
+
+    return Packet(
+        payload_bits=payload,
+        m_map=m_map,
+        umin=umin,
+        umax=umax,
+        values_per_patch=packet.values_per_patch,
+        m_max=packet.m_max,
+    )
+
+
+def awgn_channel(
+    packet: Packet,
+    ebn0_db: float,
+    metadata_through_channel: bool,
+    rng: np.random.Generator,
+) -> Packet:
+    """AWGN 数字信道：载荷/元信息经 BPSK→AWGN→解调。与 apply_channel 同构,
+    但误码强度由 Eb/N0 决定(物理 SNR 轴),而非抽象翻转概率。"""
+    payload = bpsk_awgn(packet.payload_bits, ebn0_db, rng)
+
+    if metadata_through_channel and not np.isinf(ebn0_db):
+        meta = pack_metadata(packet.m_map, packet.umin, packet.umax, packet.m_max)
+        meta = bpsk_awgn(meta, ebn0_db, rng)
         m_map, umin, umax = unpack_metadata(meta, packet.m_map.shape[0], packet.m_max)
     else:  # 元信息无损直达
         m_map, umin, umax = packet.m_map.copy(), packet.umin, packet.umax

@@ -5,6 +5,7 @@ import numpy as np
 from vit_iaq_semcom.channel import (
     Packet,
     apply_channel,
+    awgn_channel,
     bsc,
     pack_metadata,
     unpack_metadata,
@@ -64,3 +65,21 @@ def test_switch_on_metadata_can_change():
     pkt = _packet(rng)
     out = apply_channel(pkt, mu=0.2, metadata_through_channel=True, rng=rng)
     assert not np.array_equal(out.m_map, pkt.m_map) or out.umin != pkt.umin
+
+
+def test_awgn_high_snr_near_lossless():
+    """高 Eb/N0：载荷与元信息近无损。"""
+    rng = np.random.default_rng(6)
+    pkt = _packet(rng)
+    out = awgn_channel(pkt, ebn0_db=15.0, metadata_through_channel=True, rng=rng)
+    np.testing.assert_array_equal(out.m_map, pkt.m_map)
+    assert (out.payload_bits != pkt.payload_bits).mean() < 1e-2
+
+
+def test_awgn_switch_off_metadata_lossless():
+    """开关关闭：低 Eb/N0 下元信息逐位不变，仅载荷可能误码。"""
+    rng = np.random.default_rng(7)
+    pkt = _packet(rng)
+    out = awgn_channel(pkt, ebn0_db=2.0, metadata_through_channel=False, rng=rng)
+    np.testing.assert_array_equal(out.m_map, pkt.m_map)
+    assert out.umin == pkt.umin and out.umax == pkt.umax

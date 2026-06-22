@@ -55,6 +55,25 @@ def test_metadata_cliff_increases_mse(rand_pipe):
     assert cliff["recon_mse"] > safe["recon_mse"] * 2
 
 
+def test_awgn_high_snr_near_lossless(rand_pipe):
+    """AWGN 高 Eb/N0：重建近无损、输出形状正确。"""
+    x = torch.randn(2, 3, 224, 224)
+    out = rand_pipe.run_batch(x, channel_type="awgn", ebn0_db=15.0)
+    assert out["logits"].shape == (2, 100)
+    assert out["recon_mse"] < 1e-2
+
+
+def test_uniform_mode_runs(rand_pipe):
+    """均匀分配模式正常出分类，且 M_i 图为常数。"""
+    x = torch.randn(2, 3, 224, 224)
+    out = rand_pipe.run_batch(x, channel_type="awgn", ebn0_db=20.0, alloc="uniform")
+    assert out["preds"].shape == (2,)
+    # 均匀模式下编码出的 M_i 应全等
+    a = rand_pipe.enc.attention_scores(x).cpu().numpy()
+    pkt = rand_pipe.encode(x.numpy()[0], a[0], {"strategy": "uniform"})
+    assert len(np.unique(pkt.m_map)) == 1
+
+
 @pytest.mark.network
 def test_clean_baseline_accuracy_close():
     """真权重 + 真数据：干净信道大预算下准确率接近直接分类基线。"""
