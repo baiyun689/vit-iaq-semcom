@@ -21,10 +21,12 @@
 
 - [x] **Step 1 — 项目骨架**
 - [x] Step 2 — 加载预训练 ViT，提取 class-token→patch 注意力分数，复现 Fig.3 注意力热图
-- [ ] Step 3 — patch-wise 均匀量化器 + 量化误差验证
-- [ ] Step 4 — 重要性感知比特分配：增量分配法 + 注水法
-- [ ] Step 5 — 无误码场景端到端：分类精度 vs. 通信开销曲线
-- [ ] Step 6 — BSC 信道建模，扩展到有误码场景
+- [x] Step 3 — patch-wise 均匀量化器 + 量化误差验证
+- [x] Step 4 — 重要性感知比特分配：增量分配法（注水法留作后续对照）
+- [x] Step 5 — 无误码场景端到端：分类精度 vs. 通信开销（干净信道 b_target=980，掉点 <1%）
+- [x] Step 6a — BSC 信道建模 + **创新点 A 元信息性能悬崖**（E1/E2，`outputs/cliff_metadata.png`）
+- [ ] Step 6b — 创新点 A 修复：元信息 UEP/强 FEC + 载荷分级 FEC（E3）
+- [ ] Step 6c — 创新点 C：收端 token 级语义错误隐藏（E4）
 - [ ] Step 7 — 多视图任务 (MIRO / MVP-N) + 对比基线
 
 ## 环境

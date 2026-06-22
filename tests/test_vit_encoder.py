@@ -26,10 +26,11 @@ def images():
 
 
 def test_structure(enc):
+    # 默认骨干 = DeiT-Tiny（论文设置）：196 patch / 14×14 网格 / 1 前缀 token / 3 头。
     assert enc.num_patches == 196
     assert enc.grid_size == (14, 14)
     assert enc.num_prefix_tokens == 1
-    assert enc.num_heads == 12
+    assert enc.num_heads == 3
 
 
 def test_classify_shape(enc, images):
@@ -73,6 +74,7 @@ def test_load_cifar100_weights():
     """真实 fine-tuned 权重加载 smoke（需联网，离线跳过）。"""
     try:
         e = ViTEncoder(
+            arch="vit_base_patch16_224",  # 该 hf 权重是 ViT-Base，须显式指定以匹配默认的 DeiT-Tiny 之外的架构
             weights="hf:edadaltocg/vit_base_patch16_224_in21k_ft_cifar100",
             num_classes=NUM_CLASSES,
             device="cpu",

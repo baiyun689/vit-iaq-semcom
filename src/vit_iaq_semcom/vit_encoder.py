@@ -26,7 +26,7 @@ class ViTEncoder:
 
     def __init__(
         self,
-        arch: str = "vit_base_patch16_224",
+        arch: str = "deit_tiny_patch16_224",
         weights: str = "imagenet",
         num_classes: int = 100,
         device: str = "cuda",
@@ -74,10 +74,14 @@ class ViTEncoder:
 
     @classmethod
     def from_config(cls, cfg: dict, role: str = "device") -> "ViTEncoder":
-        """从 config 的 ``model`` 段构造（role: 'device' | 'server'）。"""
+        """从 config 的 ``model`` 段构造（role: 'device' | 'server'）。
+
+        每角色可用 ``{role}_arch`` 覆盖骨干（缺省回退共享 ``arch``）；
+        IAQ 链路用 server 角色（CIFAR-100 微调 ViT-Base）同时算注意力 + 分类。
+        """
         m = cfg["model"]
         return cls(
-            arch=m["arch"],
+            arch=m.get(f"{role}_arch", m["arch"]),
             weights=m[f"{role}_weights"],
             num_classes=m["num_classes"],
             device=cfg.get("device", "cuda"),
