@@ -65,17 +65,21 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", default="configs/default.yaml")
     parser.add_argument("--n", type=int, default=128, help="评测样本数（吃 GPU，默认小）")
-    parser.add_argument("--out", default="outputs/awgn_metadata_impact.png")
+    parser.add_argument("--out", default=None,
+                        help="输出图路径；缺省自动按 b_target 命名，避免不同预算互相覆盖")
     parser.add_argument("--data-root", default="./data")
     parser.add_argument("--snr", default="-4,-2,0,2,4,6,8,10,12",
                         help="逗号分隔的 Eb/N0(dB) 扫描点")
+    parser.add_argument("--b_target", type=int, default=None,
+                        help="覆盖 config 的总比特预算（对 sum M_i 的约束）；调紧可显出 IAQ 相对均匀的收益")
     parser.add_argument("--replot", default=None,
                         help="只从结果 JSON 重画图（纯 CPU，不加载模型/不上 GPU）")
     args = parser.parse_args()
 
     if args.replot:
         results = json.loads(Path(args.replot).read_text(encoding="utf-8"))
-        plot_results(results, Path(args.out))
+        out = Path(args.out or "outputs/awgn_metadata_impact.png")
+        plot_results(results, out)
         return
 
     import torch
@@ -84,6 +88,10 @@ def main() -> None:
 
     cfg = yaml.safe_load(Path(args.config).read_text(encoding="utf-8"))
     pipe = IAQPipeline.from_config(cfg)
+    if args.b_target is not None:
+        pipe.b_target = args.b_target
+    # 缺省按 b_target 命名输出，不同预算不互相覆盖
+    out = Path(args.out or f"outputs/awgn_metadata_impact_b{pipe.b_target}.png")
     print(f"encoder={pipe.enc.arch} grid={pipe.enc.grid_size} b_target={pipe.b_target}")
 
     ds = torchvision.datasets.CIFAR100(
@@ -110,10 +118,11 @@ def main() -> None:
         "base_acc": base_acc, "n": args.n,
         "b_target": pipe.b_target, "m_max": pipe.m_max, "arch": pipe.enc.arch,
     }
-    json_out = Path(args.out).with_suffix(".json")
+    json_out = out.with_suffix(".json")
+    json_out.parent.mkdir(parents=True, exist_ok=True)
     json_out.write_text(json.dumps(results, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"saved: {json_out.resolve()}")
-    plot_results(results, Path(args.out))
+    plot_results(results, out)
 
 
 if __name__ == "__main__":
