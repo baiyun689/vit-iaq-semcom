@@ -32,6 +32,6 @@
 
 - [x] 6.1 新增 `scripts/run_awgn_metadata_experiment.py`：扫 Eb/N0，跑三线（均匀 / IAQ 元信息理想 / IAQ 元信息过信道），结果存 JSON
 - [x] 6.2 画三条「准确率 vs Eb/N0」曲线，保存 `outputs/awgn_metadata_impact.png`；支持 `--replot`（零 GPU）
-- [ ] 6.3 与用户约定样本数/时长后跑一次（默认 n=128），肉眼核对：高 SNR 三线收敛、低 SNR 拉开、③ 相对 ② 的侵蚀可见
+- [x] 6.3 与用户约定样本数/时长后跑一次（n=256，SNR=-4..12，三档 b196/392/588），核对：高 SNR 三线收敛、低 SNR 拉开、③ 相对 ② 的侵蚀可见
 - [x] 6.4 `conda run -n vit-iaq-semcom pytest -m "not network"` 全绿
 - [x] 6.5 更新 README 路线图（Step 6 信道：AWGN 三线元信息影响）
