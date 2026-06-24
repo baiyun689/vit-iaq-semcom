@@ -14,8 +14,16 @@
       → 结论(CPU n=8):max_abs_drift=0.0、bit_identical=True、quant16_consistent=True。
       同硬件同输入漂移为零,仿真链路两端派生天然一致;16 档量化为零成本安全边际、
       为跨硬件鲁棒性背书。设计假设成立,A1 仿真可零训练直接派生。
-- [ ] 2.4 与用户约定时长/样本后跑一次(GPU,先问);据结果判定走零训练还是退路
-      (b588 换工作点 / 小修复头 / 蒸馏),记录结论
+- [x] 2.4 一致性实验已跑(CPU n=32):零训练派生代价强依赖基础层比特 ——
+      m_base=1/b392 掉 ~15pt(spearman0.29、alloc一致35%);m_base=2/b588 掉 ~6pt。
+      根因=域失配:vit_base 在干净 CIFAR-100 上微调,喂 base 压缩重建图=分布外(OOD)。
+      退路探针(修复头 196→196 标量 MLP,n_train512)只补回 ~1/3(脚本 run_a1_repair_head_probe.py)
+      —— 因其够不着图像信息。
+- [ ] 2.5 退路·大规模版(路 B,GPU,先问):复制一份 vit_base 当专职注意力提取器,
+      在 base 压缩重建图上微调,目标=蒸馏干净图注意力 KL(a_orig||a_stu);分类裁判冻结;
+      收发共用此网络 → metadata-free 不破。骨干续用 vit_base(不对齐论文 DeiT)。
+      脚本 run_a1_finetune_attention.py 已写+CPU冒烟通过(可微注意力反传 OK);**待目标机器 GPU 跑**。
+      自变量:--m_base / --trainable-blocks / --n-train。记录缺口补回比例。
 
 ## 3. A1 信源链路(iaq-a1-metadata-free)
 
