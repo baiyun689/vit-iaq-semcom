@@ -19,11 +19,19 @@
       根因=域失配:vit_base 在干净 CIFAR-100 上微调,喂 base 压缩重建图=分布外(OOD)。
       退路探针(修复头 196→196 标量 MLP,n_train512)只补回 ~1/3(脚本 run_a1_repair_head_probe.py)
       —— 因其够不着图像信息。
-- [ ] 2.5 退路·大规模版(路 B,GPU,先问):复制一份 vit_base 当专职注意力提取器,
-      在 base 压缩重建图上微调,目标=蒸馏干净图注意力 KL(a_orig||a_stu);分类裁判冻结;
-      收发共用此网络 → metadata-free 不破。骨干续用 vit_base(不对齐论文 DeiT)。
-      脚本 run_a1_finetune_attention.py 已写+CPU冒烟通过(可微注意力反传 OK);**待目标机器 GPU 跑**。
-      自变量:--m_base / --trainable-blocks / --n-train。记录缺口补回比例。
+- [x] 2.5 退路·大规模版(路 B,GPU 已跑,n_test=1000):**反面结果,已下车**。
+      KL 蒸馏干净图注意力(run_a1_finetune_attention.py)在 m_base=1/b392 把代理(spearman
+      0.28→0.42)做好了,真目标反而**倒退 7pt**(gap_closed_frac=−0.63):前向 KL mode-covering
+      把 student 注意力摊平 → incremental_allocation 丢尖锐度 → 分配趋均匀。代理/目标背离。
+      → 微调路放弃,留作论文反面教材。
+- [x] 2.6 **决策:工作点 = m_base=2 / b588 零训练 A1**(派生缺口 0.8pt,可忽略)。
+      零训练一致性扫描(n=1000)揭示派生缺口的**主因是码率松紧 ρ,不是基础层厚度**:
+        m_base=1/b392(ρ.25): 缺口 11.6pt  | m_base=1/b588(ρ.375): 2.6pt(spearman 与前者
+        同=0.283,注意力相同,差异纯来自预算松紧) | m_base=2/b588: 0.8pt。
+      即:预算松→派生排错也有余量→缺口小;基础层加厚(1→2)再小补一刀。叙事=
+      "metadata-free 派生代价随 ρ 升高迅速消失,中等码率即可忽略",画 缺口-vs-ρ 曲线。
+      A1 本质=双端共享缩略图各自派生同一分配(零训练/无 teacher-student/不传元信息);
+      缺口是 metadata-free 的"标价"非 bug。微调(§2.5)无必要且翻车,弃。
 
 ## 3. A1 信源链路(iaq-a1-metadata-free)
 
