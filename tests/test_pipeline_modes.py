@@ -75,6 +75,30 @@ def test_eep_uep_lossless_at_inf_snr():
     assert uep["recon_mse"] == ideal["recon_mse"]
 
 
+def test_a1_uses_attn_encoder_when_set():
+    """A1 派生分配走 self._attn:设了微调 student 就用它(不同注意力→不同分配→不同重建);
+    清空后回退冻结 self.enc。分类裁判始终是 self.enc。"""
+    pipe = _pipe(b_target=32)
+    x = _imgs(seed=5)
+    assert pipe._attn is pipe.enc  # 缺省回退分类网络
+    base = pipe.run_batch(x, channel_type="awgn", ebn0_db=float("inf"),
+                          mode="a1", m_base=1)
+
+    class FlipEncoder(FakeEncoder):
+        def attention_scores(self, images):  # 反向重要性 → 不同派生
+            pooled = F.avg_pool2d(images.abs(), kernel_size=2).mean(dim=1)
+            return torch.softmax(-pooled.reshape(images.shape[0], -1), dim=1)
+
+    pipe.attn_enc = FlipEncoder()
+    assert pipe._attn is pipe.attn_enc
+    flipped = pipe.run_batch(x, channel_type="awgn", ebn0_db=float("inf"),
+                             mode="a1", m_base=1)
+    assert abs(flipped["recon_mse"] - base["recon_mse"]) > 1e-9
+
+    pipe.attn_enc = None
+    assert pipe._attn is pipe.enc
+
+
 def test_iaq_mode_backward_compatible():
     """默认 mode='iaq' 行为不变(回归保护)。"""
     pipe = _pipe(b_target=48)

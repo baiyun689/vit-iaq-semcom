@@ -42,12 +42,13 @@ def matched_rate(snr: float) -> int:
     return 1
 
 
-def nominal_channel_bits(line: str, b_target: int, r: int, weak_r: int = 1) -> int:
+def nominal_channel_bits(line: str, b_target: int, r: int, weak_r: int = 1,
+                         m_base: int = 1) -> int:
     """每条线标称信道比特(信源 + FEC 膨胀),用于同带宽开销记账。"""
     payload = P_SCALARS * b_target          # incremental 用满预算
     uni = P_SCALARS * (N_PATCH * (b_target // N_PATCH))
-    base_src = P_SCALARS * (N_PATCH * 1)    # A1 m_base=1
-    enh_src = P_SCALARS * (b_target - N_PATCH * 1)
+    base_src = P_SCALARS * (N_PATCH * m_base)
+    enh_src = P_SCALARS * (b_target - N_PATCH * m_base)
     return {
         "uniform": uni,
         "ideal": payload + META_BITS,
@@ -87,14 +88,14 @@ def plot_results(res: dict, out: Path) -> None:
 
 
 def evaluate(pipe, x, y, snr, *, mode, alloc=None, mtc=False,
-             meta_fec_r=1, payload_fec_r=1, base_fec_r=1, batch=64, seed=0):
+             meta_fec_r=1, payload_fec_r=1, base_fec_r=1, m_base=1, batch=64, seed=0):
     correct = total = 0
     for s in range(0, x.shape[0], batch):
         xb, yb = x[s:s + batch], y[s:s + batch]
         out = pipe.run_batch(
             xb, labels=yb, channel_type="awgn", ebn0_db=snr, mode=mode, alloc=alloc,
             metadata_through_channel=mtc, meta_fec_r=meta_fec_r,
-            payload_fec_r=payload_fec_r, base_fec_r=base_fec_r, seed=seed + s)
+            payload_fec_r=payload_fec_r, base_fec_r=base_fec_r, m_base=m_base, seed=seed + s)
         correct += out["accuracy"] * xb.shape[0]
         total += xb.shape[0]
     return correct / total
@@ -108,6 +109,9 @@ def main() -> None:
     ap.add_argument("--snr", default="-4,-2,0,2,4,6,8,10,12")
     ap.add_argument("--design-snr", type=float, default=None,
                     help="失配场景固定设计点;不给=匹配场景(按当前 SNR 设计)")
+    ap.add_argument("--m_base", type=int, default=1, help="A1 基础层每 patch 比特(工作点)")
+    ap.add_argument("--attn-ckpt", default=None,
+                    help="§2.5 微调后 student 注意力网络 .pt;给了则 A1 派生用它(分类仍冻结)")
     ap.add_argument("--weak-r", type=int, default=1, help="UEP 载荷弱保护速率分母")
     ap.add_argument("--data-root", default="./data")
     ap.add_argument("--device", default=None)
@@ -131,10 +135,14 @@ def main() -> None:
         cfg["device"] = args.device
     pipe = IAQPipeline.from_config(cfg)
     pipe.b_target = args.b_target
+    if args.attn_ckpt:
+        pipe.load_attn_encoder(args.attn_ckpt, cfg)
+        print(f"A1 派生注意力用微调 student: {args.attn_ckpt}")
     scen = "mismatch" if args.design_snr is not None else "matched"
-    out = Path(args.out or f"outputs/a1_sixline_{scen}_b{args.b_target}.png")
-    print(f"encoder={pipe.enc.arch} b_target={pipe.b_target} 场景={scen} "
-          f"design_snr={args.design_snr}")
+    tag = f"_tuned" if args.attn_ckpt else ""
+    out = Path(args.out or f"outputs/a1_sixline_{scen}_b{args.b_target}{tag}.png")
+    print(f"encoder={pipe.enc.arch} b_target={pipe.b_target} m_base={args.m_base} "
+          f"场景={scen} design_snr={args.design_snr} attn_ckpt={args.attn_ckpt}")
 
     ds = torchvision.datasets.CIFAR100(
         root=args.data_root, train=False, download=True, transform=pipe.enc.transform)
@@ -154,9 +162,9 @@ def main() -> None:
         acc["raw"].append(evaluate(pipe, x, y, snr, mode="iaq", alloc="incremental", mtc=True))
         acc["eep"].append(evaluate(pipe, x, y, snr, mode="eep", meta_fec_r=r, payload_fec_r=r))
         acc["uep"].append(evaluate(pipe, x, y, snr, mode="uep", meta_fec_r=r, payload_fec_r=args.weak_r))
-        acc["a1"].append(evaluate(pipe, x, y, snr, mode="a1", base_fec_r=r))
+        acc["a1"].append(evaluate(pipe, x, y, snr, mode="a1", base_fec_r=r, m_base=args.m_base))
         chan_bits[f"{snr}"] = {
-            ln: nominal_channel_bits(ln, args.b_target, r, args.weak_r)
+            ln: nominal_channel_bits(ln, args.b_target, r, args.weak_r, args.m_base)
             for ln in acc}
         print(f"SNR={snr:<5g} r={r} " + " ".join(
             f"{k}={acc[k][-1]:.3f}" for k in acc))
@@ -164,6 +172,7 @@ def main() -> None:
     res = {
         "snr": snrs, "acc": acc, "base_acc": base_acc, "n": args.n,
         "b_target": args.b_target, "design_snr": args.design_snr,
+        "m_base": args.m_base, "attn_ckpt": args.attn_ckpt,
         "weak_r": args.weak_r, "arch": pipe.enc.arch,
         "channel_bits": chan_bits,
     }

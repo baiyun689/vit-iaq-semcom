@@ -64,6 +64,35 @@ class IAQPipeline:
         self.b_target = b_target
         self.alloc_cfg = {"weight": weight, "strategy": strategy}
         self.gh, self.gw = encoder.grid_size
+        # 可选：A1 在压缩图上派生分配的专职注意力提取器(§2.5 微调后的 student)。
+        # None 时回退 self.enc。分类裁判恒为冻结 self.enc,不受影响。
+        self.attn_enc: ViTEncoder | None = None
+
+    @property
+    def _attn(self) -> ViTEncoder:
+        """A1 派生分配用的注意力提取器:有微调 student 用它,否则回退分类网络。"""
+        return self.attn_enc if self.attn_enc is not None else self.enc
+
+    def load_attn_encoder(self, ckpt_path: str, cfg: dict, role: str = "server") -> ViTEncoder:
+        """加载 §2.5 微调后的 student 注意力提取器(.pt = state_dict),供 A1 派生分配用。
+
+        分类裁判仍是冻结 self.enc(不挪尺子);收发两端共用此 attn_enc → metadata-free 不破。
+        注意:student 是针对某个 m_base 压缩分布训的,run_batch 的 m_base 须与训练时一致。
+        用 weights='random' 建同架构空壳再灌 student 权重,避免重复下载原 hf 权重。
+        """
+        m = cfg["model"]
+        enc = ViTEncoder(
+            arch=m.get(f"{role}_arch", m["arch"]),
+            weights="random",
+            num_classes=m["num_classes"],
+            device=cfg.get("device", "cuda"),
+        )
+        state = torch.load(ckpt_path, map_location=enc.device, weights_only=True)
+        state = state.get("state_dict", state) if isinstance(state, dict) else state
+        enc.model.load_state_dict(state, strict=True)
+        enc.model.eval()
+        self.attn_enc = enc
+        return enc
 
     @classmethod
     def from_config(cls, cfg: dict) -> "IAQPipeline":
@@ -136,7 +165,7 @@ class IAQPipeline:
         # 发端：基础层重建 → 注意力 → 编码 → 过信道
         x_base_tx = np.stack(
             [base_reconstruct(x[k], m_base, umins[k], umaxs[k]) for k in range(b)])
-        a_tx = self.enc.attention_scores(
+        a_tx = self._attn.attention_scores(
             torch.from_numpy(x_base_tx).to(dtype)).cpu().numpy()
         pkts: list[A1Packet] = []
         for k in range(b):
@@ -149,7 +178,7 @@ class IAQPipeline:
         for k in range(b):
             _, base_patches = a1_decode_base(pkts[k])
             x_base_rx[k] = _from_patches(base_patches, c, self.gh, self.gw, ph, pw)
-        a_rx = self.enc.attention_scores(
+        a_rx = self._attn.attention_scores(
             torch.from_numpy(x_base_rx).to(dtype)).cpu().numpy()
         recon = np.empty_like(x)
         for k in range(b):
