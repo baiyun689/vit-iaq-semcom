@@ -26,7 +26,10 @@
 - [x] Step 5 — 无误码场景端到端：分类精度 vs. 通信开销（干净信道 b_target=980，掉点 <1%）
 - [x] Step 6a — BSC 信道建模 + **创新点 A 元信息性能悬崖**（E1/E2，`outputs/cliff_metadata.png`）
 - [x] Step 6b — AWGN 数字信道（BPSK）+ **三线元信息影响实验**（均匀/IAQ理想/IAQ过信道，vs Eb/N0）
-- [ ] Step 6c — 创新点 A 修复：元信息 UEP/强 FEC + 载荷分级 FEC（缩减影响）
+- [ ] Step 6c — **创新点 B「A1 元信息-free」**：收发两端从共享基础层各自派生比特分配、
+      不传脆弱 M_i 图,结构性消除元信息悬崖（`src/.../a1.py`、`scripts/run_a1_*.py`）；
+      经典 EEP/UEP 降为对照,六线对比含图1匹配 / 图2失配（杀招）。设计稿见
+      `docs/superpowers/specs/2026-06-23-a1-metadata-free-design.md`
 - [ ] Step 6d — 创新点 C：收端 token 级语义错误隐藏（E4）
 - [ ] Step 7 — 多视图任务 (MIRO / MVP-N) + 对比基线
 

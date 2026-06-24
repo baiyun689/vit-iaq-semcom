@@ -20,3 +20,6 @@ dist/
 .idea/
 .vscode/
 *.log
+
+# claude code local config
+.claude/

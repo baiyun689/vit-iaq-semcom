@@ -19,6 +19,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
+from .fec import repetition_decode, repetition_encode
 from .modulation import bpsk_awgn
 from .quantization import (
     bits_to_index,
@@ -106,6 +107,39 @@ def apply_channel(
         umax=umax,
         values_per_patch=packet.values_per_patch,
         m_max=packet.m_max,
+    )
+
+
+def _awgn_fec(bits: np.ndarray, ebn0_db: float, r: int, rng: np.random.Generator) -> np.ndarray:
+    """比特经 (可选)重复码 FEC → BPSK→AWGN→解调 → FEC 解码。r=1 即不保护。"""
+    if r > 1:
+        return repetition_decode(bpsk_awgn(repetition_encode(bits, r), ebn0_db, rng), r)
+    return bpsk_awgn(bits, ebn0_db, rng)
+
+
+def awgn_channel_fec(
+    packet: Packet,
+    ebn0_db: float,
+    rng: np.random.Generator,
+    meta_fec_r: int = 1,
+    payload_fec_r: int = 1,
+) -> Packet:
+    """EEP/UEP 对照信道:元信息**始终过信道**,载荷与元信息各自施加重复码 FEC。
+
+    - EEP:meta_fec_r == payload_fec_r(等强保护)。
+    - UEP:meta_fec_r > payload_fec_r(元信息强保护、载荷弱)。
+    FEC 比特膨胀计入总信道带宽(同带宽对照口径,由实验脚本统一记账)。
+    """
+    payload = _awgn_fec(packet.payload_bits, ebn0_db, payload_fec_r, rng)
+    if np.isinf(ebn0_db):  # 无噪:元信息无损
+        m_map, umin, umax = packet.m_map.copy(), packet.umin, packet.umax
+    else:
+        meta = pack_metadata(packet.m_map, packet.umin, packet.umax, packet.m_max)
+        meta = _awgn_fec(meta, ebn0_db, meta_fec_r, rng)
+        m_map, umin, umax = unpack_metadata(meta, packet.m_map.shape[0], packet.m_max)
+    return Packet(
+        payload_bits=payload, m_map=m_map, umin=umin, umax=umax,
+        values_per_patch=packet.values_per_patch, m_max=packet.m_max,
     )
 
 

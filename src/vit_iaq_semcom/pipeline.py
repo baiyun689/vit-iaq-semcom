@@ -14,8 +14,16 @@ from __future__ import annotations
 import numpy as np
 import torch
 
+from .a1 import (
+    A1Packet,
+    a1_decode,
+    a1_decode_base,
+    a1_encode,
+    a1_through_channel,
+    base_reconstruct,
+)
 from .bit_allocation import allocate
-from .channel import Packet, apply_channel, awgn_channel
+from .channel import Packet, apply_channel, awgn_channel, awgn_channel_fec
 from .quantization import (
     bitstream_to_indices,
     quantize_to_bitstream,
@@ -106,6 +114,49 @@ class IAQPipeline:
             cursor += nbits
         return out
 
+    # -------------------------------------------------------------------- A1
+    def _run_a1(
+        self, x: np.ndarray, ebn0_db: float, m_base: int, base_fec_r: int,
+        b_enh: int | None, rng: np.random.Generator, dtype: torch.dtype,
+    ) -> np.ndarray:
+        """A1 元信息-free 批处理：两端在基础层重建图上各自算注意力派生分配。
+
+        发端在自己的基础层重建上算 a_i 编码；收端解出基础层(经 FEC)后**重新**算 a_i
+        派生 ΔM_i，故基础层受损时收发分配会随之一致地变化(诚实建模)。
+        """
+        b, c, h, w = x.shape
+        ph, pw = h // self.gh, w // self.gw
+        n = self.gh * self.gw
+        if b_enh is None:
+            b_enh = self.b_target - n * m_base
+
+        umins = np.array([float(x[k].min()) for k in range(b)])
+        umaxs = np.array([float(x[k].max()) for k in range(b)])
+
+        # 发端：基础层重建 → 注意力 → 编码 → 过信道
+        x_base_tx = np.stack(
+            [base_reconstruct(x[k], m_base, umins[k], umaxs[k]) for k in range(b)])
+        a_tx = self.enc.attention_scores(
+            torch.from_numpy(x_base_tx).to(dtype)).cpu().numpy()
+        pkts: list[A1Packet] = []
+        for k in range(b):
+            pkt = a1_encode(_to_patches(x[k], self.gh, self.gw), a_tx[k],
+                            umins[k], umaxs[k], m_base, b_enh, self.m_max, base_fec_r)
+            pkts.append(a1_through_channel(pkt, ebn0_db, rng))
+
+        # 收端：解基础层 → 重新算注意力 → 派生 ΔM_i → 解增强层
+        x_base_rx = np.empty_like(x)
+        for k in range(b):
+            _, base_patches = a1_decode_base(pkts[k])
+            x_base_rx[k] = _from_patches(base_patches, c, self.gh, self.gw, ph, pw)
+        a_rx = self.enc.attention_scores(
+            torch.from_numpy(x_base_rx).to(dtype)).cpu().numpy()
+        recon = np.empty_like(x)
+        for k in range(b):
+            recon[k] = _from_patches(
+                a1_decode(pkts[k], a_rx[k]), c, self.gh, self.gw, ph, pw)
+        return recon
+
     # ------------------------------------------------------------- end-to-end
     @torch.no_grad()
     def run_batch(
@@ -118,28 +169,41 @@ class IAQPipeline:
         metadata_through_channel: bool = False,
         alloc: str | None = None,
         seed: int = 0,
+        mode: str = "iaq",
+        meta_fec_r: int = 1,
+        payload_fec_r: int = 1,
+        base_fec_r: int = 3,
+        m_base: int = 1,
+        b_enh: int | None = None,
     ) -> dict:
         """images: (B,3,224,224) 预处理后张量。返回 logits/preds/(accuracy)。
 
         channel_type: 'bsc'(用 mu) | 'awgn'(用 ebn0_db)。
         alloc: 覆盖比特分配策略('incremental'|'uniform'|...)，None 用 pipeline 默认。
+        mode: 'iaq'(默认,既有路径) | 'eep' | 'uep' | 'a1'(元信息-free)。
+        meta_fec_r/payload_fec_r: EEP/UEP 的元信息/载荷重复码速率分母。
+        base_fec_r/m_base/b_enh: A1 的基础层 FEC、基础层比特、增强层预算(缺省 b_target−N·m_base)。
         """
         rng = np.random.default_rng(seed)
-        alloc_cfg = {**self.alloc_cfg, "strategy": alloc} if alloc else None
-        a = self.enc.attention_scores(images).cpu().numpy()   # (B, N)
         x = images.cpu().numpy()
         b, c, h, w = x.shape
         ph, pw = h // self.gh, w // self.gw
 
-        recon = np.empty_like(x)
-        for k in range(b):
-            pkt = self.encode(x[k], a[k], alloc_cfg)
-            if channel_type == "awgn":
-                pkt = awgn_channel(pkt, ebn0_db, metadata_through_channel, rng)
-            else:
-                pkt = apply_channel(pkt, mu, metadata_through_channel, rng)
-            patches = self.decode(pkt)
-            recon[k] = _from_patches(patches, c, self.gh, self.gw, ph, pw)
+        if mode == "a1":
+            recon = self._run_a1(x, ebn0_db, m_base, base_fec_r, b_enh, rng, images.dtype)
+        else:
+            alloc_cfg = {**self.alloc_cfg, "strategy": alloc} if alloc else None
+            a = self.enc.attention_scores(images).cpu().numpy()   # (B, N)
+            recon = np.empty_like(x)
+            for k in range(b):
+                pkt = self.encode(x[k], a[k], alloc_cfg)
+                if mode in ("eep", "uep"):
+                    pkt = awgn_channel_fec(pkt, ebn0_db, rng, meta_fec_r, payload_fec_r)
+                elif channel_type == "awgn":
+                    pkt = awgn_channel(pkt, ebn0_db, metadata_through_channel, rng)
+                else:
+                    pkt = apply_channel(pkt, mu, metadata_through_channel, rng)
+                recon[k] = _from_patches(self.decode(pkt), c, self.gh, self.gw, ph, pw)
 
         recon = np.nan_to_num(recon, nan=0.0, posinf=10.0, neginf=-10.0)
         x_hat = torch.from_numpy(recon).to(images.dtype)
