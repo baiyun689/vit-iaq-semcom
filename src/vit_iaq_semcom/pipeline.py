@@ -23,12 +23,20 @@ from .a1 import (
     base_reconstruct,
 )
 from .bit_allocation import allocate
+from .bucket import (
+    bit_depth_map,
+    bucket_decode,
+    bucket_decode_base,
+    bucket_encode,
+    bucket_through_channel,
+)
 from .channel import Packet, apply_channel, awgn_channel, awgn_channel_fec
 from .quantization import (
     bitstream_to_indices,
     quantize_to_bitstream,
     uniform_dequantize,
 )
+from .repair import SemanticRepairNet, repair_reconstruction
 from .vit_encoder import ViTEncoder
 
 
@@ -67,6 +75,8 @@ class IAQPipeline:
         # 可选：A1 在压缩图上派生分配的专职注意力提取器(§2.5 微调后的 student)。
         # None 时回退 self.enc。分类裁判恒为冻结 self.enc,不受影响。
         self.attn_enc: ViTEncoder | None = None
+        # 可选：收端学习式语义修补网络(bucket+repair 模式)。None 时该模式退化为纯 bucket。
+        self.repair_net: SemanticRepairNet | None = None
 
     @property
     def _attn(self) -> ViTEncoder:
@@ -186,6 +196,78 @@ class IAQPipeline:
                 a1_decode(pkts[k], a_rx[k]), c, self.gh, self.gw, ph, pw)
         return recon
 
+    # ---------------------------------------------------------------- bucket
+    def load_repair_net(self, ckpt_path: str, **net_kwargs) -> SemanticRepairNet:
+        """加载已训练的语义修补网络(.pt = state_dict),供 bucket+repair 模式用。
+
+        net_kwargs 须与训练时构造一致(grid/patch_dim/m_max/dim/depth/heads)。
+        """
+        net = SemanticRepairNet(**net_kwargs)
+        state = torch.load(ckpt_path, map_location=self.enc.device, weights_only=True)
+        state = state.get("state_dict", state) if isinstance(state, dict) else state
+        net.load_state_dict(state, strict=True)
+        net.to(self.enc.device).eval()
+        self.repair_net = net
+        return net
+
+    def bucket_corrupt(
+        self, x: np.ndarray, ebn0_db: float, m_base: int, base_fec_r: int,
+        buckets: list[tuple[int, int]] | None, rng: np.random.Generator,
+        dtype: torch.dtype,
+    ) -> tuple[np.ndarray, np.ndarray]:
+        """粗桶非级联源编码 → 信道 → 解码,返回 (受损重建 (B,C,H,W), 比特深度图 (B,N))。
+
+        发端在基础层重建图上算注意力排序入桶；收端解基础层 → 重新算注意力派生排序 →
+        定长读增强层重组(错配只局部、不级联)。比特深度图(派生副产品)供修补网络作可靠性输入。
+        不含修补 —— 供 bucket/bucket+repair 推理与修补网络训练共用(同一损伤分布)。
+        """
+        b, c, h, w = x.shape
+        ph, pw = h // self.gh, w // self.gw
+        n = self.gh * self.gw
+        if buckets is None:                          # 安全回退:单桶≈均匀(实验脚本应显式传桶)
+            buckets = [(n, max(self.b_target // n, m_base))]
+
+        umins = np.array([float(x[k].min()) for k in range(b)])
+        umaxs = np.array([float(x[k].max()) for k in range(b)])
+
+        # 发端：基础层重建 → 注意力 → 入桶编码 → 过信道
+        x_base_tx = np.stack(
+            [base_reconstruct(x[k], m_base, umins[k], umaxs[k]) for k in range(b)])
+        a_tx = self._attn.attention_scores(
+            torch.from_numpy(x_base_tx).to(dtype)).cpu().numpy()
+        pkts = []
+        for k in range(b):
+            pkt = bucket_encode(_to_patches(x[k], self.gh, self.gw), a_tx[k],
+                                umins[k], umaxs[k], m_base, buckets, self.m_max, base_fec_r)
+            pkts.append(bucket_through_channel(pkt, ebn0_db, rng))
+
+        # 收端：解基础层 → 重新算注意力 → 派生排序 → 定长解增强层
+        x_base_rx = np.empty_like(x)
+        for k in range(b):
+            x_base_rx[k] = _from_patches(
+                bucket_decode_base(pkts[k]), c, self.gh, self.gw, ph, pw)
+        a_rx = self._attn.attention_scores(
+            torch.from_numpy(x_base_rx).to(dtype)).cpu().numpy()
+        recon = np.empty_like(x)
+        bdm = np.zeros((b, n), dtype=np.int64)
+        for k in range(b):
+            recon[k] = _from_patches(
+                bucket_decode(pkts[k], a_rx[k]), c, self.gh, self.gw, ph, pw)
+            bdm[k] = bit_depth_map(a_rx[k], buckets, self.m_max)
+        return recon, bdm
+
+    def _run_bucket(
+        self, x: np.ndarray, ebn0_db: float, m_base: int, base_fec_r: int,
+        buckets: list[tuple[int, int]] | None, rng: np.random.Generator,
+        dtype: torch.dtype, repair: bool,
+    ) -> np.ndarray:
+        """粗桶批处理；repair=True 时在解码图上加收端学习式修补(零额外带宽)。"""
+        recon, bdm = self.bucket_corrupt(
+            x, ebn0_db, m_base, base_fec_r, buckets, rng, dtype)
+        if repair and self.repair_net is not None:   # 零额外带宽:仅收端算力
+            recon = repair_reconstruction(self.repair_net, recon, bdm, dtype)
+        return recon
+
     # ------------------------------------------------------------- end-to-end
     @torch.no_grad()
     def run_batch(
@@ -204,14 +286,17 @@ class IAQPipeline:
         base_fec_r: int = 3,
         m_base: int = 1,
         b_enh: int | None = None,
+        buckets: list[tuple[int, int]] | None = None,
     ) -> dict:
         """images: (B,3,224,224) 预处理后张量。返回 logits/preds/(accuracy)。
 
         channel_type: 'bsc'(用 mu) | 'awgn'(用 ebn0_db)。
         alloc: 覆盖比特分配策略('incremental'|'uniform'|...)，None 用 pipeline 默认。
-        mode: 'iaq'(默认,既有路径) | 'eep' | 'uep' | 'a1'(元信息-free)。
+        mode: 'iaq'(默认,既有路径) | 'eep' | 'uep' | 'a1'(元信息-free)
+              | 'bucket'(粗桶非级联) | 'bucket+repair'(粗桶+收端学习式修补,零额外带宽)。
         meta_fec_r/payload_fec_r: EEP/UEP 的元信息/载荷重复码速率分母。
         base_fec_r/m_base/b_enh: A1 的基础层 FEC、基础层比特、增强层预算(缺省 b_target−N·m_base)。
+        buckets: bucket/bucket+repair 模式的桶配置 list[(cnt, 总比特)]，缺省单桶≈均匀。
         """
         rng = np.random.default_rng(seed)
         x = images.cpu().numpy()
@@ -220,6 +305,10 @@ class IAQPipeline:
 
         if mode == "a1":
             recon = self._run_a1(x, ebn0_db, m_base, base_fec_r, b_enh, rng, images.dtype)
+        elif mode in ("bucket", "bucket+repair"):
+            recon = self._run_bucket(
+                x, ebn0_db, m_base, base_fec_r, buckets, rng, images.dtype,
+                repair=(mode == "bucket+repair"))
         else:
             alloc_cfg = {**self.alloc_cfg, "strategy": alloc} if alloc else None
             a = self.enc.attention_scores(images).cpu().numpy()   # (B, N)

@@ -8,6 +8,10 @@ import torch
 import torch.nn.functional as F
 
 from vit_iaq_semcom.pipeline import IAQPipeline
+from vit_iaq_semcom.repair import SemanticRepairNet
+
+# N=16 桶配置(grid 4×4):m_base=1,top-4 到 3bit、次-4 到 2bit、其余到 1bit
+BUCKETS = [(4, 3), (4, 2), (8, 1)]
 
 
 class FakeEncoder:
@@ -105,3 +109,58 @@ def test_iaq_mode_backward_compatible():
     x = _imgs(seed=4)
     out = pipe.run_batch(x, channel_type="awgn", ebn0_db=8.0, alloc="incremental")
     assert "preds" in out and np.isfinite(out["recon_mse"])
+
+
+def _repair_net():
+    return SemanticRepairNet(grid=(4, 4), patch_dim=(3, 2, 2), m_max=4,
+                             dim=24, depth=2, heads=2)
+
+
+def test_bucket_mode_runs_and_reconstructs_at_high_snr():
+    pipe = _pipe(b_target=28)
+    x = _imgs(seed=6)
+    out = pipe.run_batch(x, channel_type="awgn", ebn0_db=float("inf"),
+                         mode="bucket", m_base=1, buckets=BUCKETS)
+    assert out["preds"].shape[0] == 4
+    assert out["recon_mse"] < 0.5                    # 无噪:粗桶重建接近原图
+
+
+def test_bucket_floor_no_crater_at_low_snr():
+    """极低 SNR:粗桶仍跑通、重建有限(无 NaN/爆炸),局部损伤不级联崩。"""
+    pipe = _pipe(b_target=28)
+    x = _imgs(seed=7)
+    out = pipe.run_batch(x, channel_type="awgn", ebn0_db=-10.0,
+                         mode="bucket", m_base=1, base_fec_r=5, buckets=BUCKETS, seed=3)
+    assert np.isfinite(out["recon_mse"]) and out["preds"].shape[0] == 4
+
+
+def test_bucket_repair_zero_extra_bandwidth():
+    """bucket+repair 与 bucket 过信道比特完全相同:差异仅来自收端修补(纯算力)。
+
+    修补网络零初始化(恒等)时两者重建逐元素相同 → 证明信道路径不变、修补是收端加法。
+    """
+    pipe = _pipe(b_target=28)
+    x = _imgs(seed=8)
+    base = pipe.run_batch(x, channel_type="awgn", ebn0_db=5.0,
+                          mode="bucket", m_base=1, buckets=BUCKETS, seed=2)
+    pipe.repair_net = _repair_net()                  # head 零初始化 → 恒等兜底
+    rep0 = pipe.run_batch(x, channel_type="awgn", ebn0_db=5.0,
+                          mode="bucket+repair", m_base=1, buckets=BUCKETS, seed=2)
+    assert rep0["recon_mse"] == base["recon_mse"]    # 同信道比特,修补恒等→重建一致
+
+    # 解除零初始化 → 修补真的改动重建(仍零额外带宽)
+    torch.nn.init.normal_(pipe.repair_net.head.weight, std=0.05)
+    rep1 = pipe.run_batch(x, channel_type="awgn", ebn0_db=5.0,
+                          mode="bucket+repair", m_base=1, buckets=BUCKETS, seed=2)
+    assert rep1["recon_mse"] != base["recon_mse"]
+
+
+def test_bucket_repair_without_net_falls_back_to_bucket():
+    """未加载修补网络时 bucket+repair 优雅退化为纯 bucket(不报错)。"""
+    pipe = _pipe(b_target=28)
+    x = _imgs(seed=9)
+    base = pipe.run_batch(x, channel_type="awgn", ebn0_db=5.0,
+                          mode="bucket", m_base=1, buckets=BUCKETS, seed=1)
+    rep = pipe.run_batch(x, channel_type="awgn", ebn0_db=5.0,
+                         mode="bucket+repair", m_base=1, buckets=BUCKETS, seed=1)
+    assert rep["recon_mse"] == base["recon_mse"]
