@@ -105,21 +105,20 @@ def plot_results(res: dict, out: Path) -> None:
     ax.axhline(res["base_acc"], color="gray", ls=":", lw=1,
                label=f"无量化基线 ({res['base_acc']:.2f})")
     style = {
-        "ideal": ("o-", "tab:blue", "(0) 理想(上界)"),  # ⓪ 字形 YaHei 缺,用 (0)
-        "uniform": ("^-", "tab:green", "① 均匀"),
-        "raw": ("s-", "tab:red", "③ 裸传元信息(悬崖)"),
-        "protected": ("D-", "tab:purple", "⑥ IAQ+保护元信息"),
-        "bucket": ("v-", "tab:orange", "④ 粗桶"),
-        "bucket_repair": ("*-", "black", "⑤ 粗桶+AI修补"),
+        "uniform": ("^-", "tab:green", "均匀量化"),
+        "ideal": ("o-", "tab:blue", "IAQ·元信息无损"),
+        "raw": ("s-", "tab:red", "IAQ·元信息裸传"),
+        "protected": ("D-", "tab:purple", "IAQ·元信息FEC保护"),
+        "bucket": ("v-", "tab:orange", "粗桶分层"),
+        "bucket_repair": ("*-", "black", "粗桶分层+语义修补"),
     }
     for line, (mk, col, lab) in style.items():
         if line in res["acc"]:
             ax.plot(snr, res["acc"][line], mk, color=col, label=lab)
-    scen = f"失配(设计点 {res['design_snr']}dB)" if res["design_snr"] is not None else "匹配"
     rho = res["b_target"] / 1568
     ax.set_xlabel("Eb/N0 (dB)")
     ax.set_ylabel("CIFAR-100 Top-1 准确率")
-    ax.set_title(f"粗桶+修补 六线 · {scen} · ρ={rho:.3f} (b{res['b_target']})")
+    ax.set_title(f"比特预算 B={res['b_target']} (ρ={rho:.2f})")
     ax.legend(fontsize=8, ncol=2)
     ax.grid(True, alpha=0.3)
     out.parent.mkdir(parents=True, exist_ok=True)
