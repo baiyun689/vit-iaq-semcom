@@ -51,10 +51,13 @@ def main() -> None:
     parser.add_argument("--n", type=int, default=3, help="可视化样例数")
     parser.add_argument("--out", default="outputs/attention_fig3.png")
     parser.add_argument("--data-root", default="./data")
+    parser.add_argument("--role", default="device", choices=["device", "server"],
+                        help="用哪个编码器算注意力:device=DeiT-Tiny(论文 Fig.3);"
+                             "server=vit_base(实际 IAQ/粗桶链路所用)")
     args = parser.parse_args()
 
     cfg = yaml.safe_load(Path(args.config).read_text(encoding="utf-8"))
-    enc = ViTEncoder.from_config(cfg, role="device")
+    enc = ViTEncoder.from_config(cfg, role=args.role)
     print(f"encoder: arch={enc.arch} heads={enc.num_heads} grid={enc.grid_size}")
 
     # CIFAR-100 测试集；encoder 预处理 transform（resize→224 + 归一化）喂模型
