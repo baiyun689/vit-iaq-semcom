@@ -91,3 +91,49 @@ Expected: no slide-canvas overflow; rendered page has no clipped text, unwanted 
 - [ ] **Step 5: Deliver the verified deck**
 
 Confirm the final file exists, has one slide, and the displayed arithmetic sums to `301,056 bit`.
+
+### Task 2: Add the receiver parsing logic to the same slide
+
+**Files:**
+- Modify: external scratch `tmp/create-b392-bitstream.mjs`
+- Create: `outputs/b392_bitstream_sender_receiver.pptx`
+- Test: rendered slide PNG, layout JSON, and `slides_test.py` output in external scratch
+
+**Interfaces:**
+- Consumes: the sender bitstream layout and palette from Task 1
+- Produces: one editable slide containing both sender structure and receiver parsing
+
+- [ ] **Step 1: Compress the sender section into the upper half**
+
+Keep the proportional base, first-tier enhancement, and second-tier enhancement segments. Preserve these formulas:
+
+```text
+196 patch × 768 标量 × 1 bit = 150,528 bit
+49 patch × 768 标量 × 3 bit = 112,896 bit
+49 patch × 768 标量 × 1 bit = 37,632 bit
+98 patch × 768 标量 × 0 bit = 0 bit
+```
+
+- [ ] **Step 2: Add the four-step receiver flow**
+
+Use native PowerPoint shapes and connectors for:
+
+```text
+解码基础层 → 基础重建结果 → 计算重要性并确定分档
+增强层暂存 ─────────────→ 按分档读取增强比特
+基础比特 + 增强比特 → 合并重建结果
+```
+
+Add one short conclusion:
+
+```text
+收端根据基础重建结果确定分档，无需额外接收分档元信息。
+```
+
+- [ ] **Step 3: Export a distinct PPTX**
+
+Run the scratch module and save `outputs/b392_bitstream_sender_receiver.pptx`; preserve `outputs/b392_bitstream_structure.pptx`.
+
+- [ ] **Step 4: Verify the edited slide**
+
+Run `slides_test.py`, render the final slide, and inspect it at full size. Expected: one slide, no overflow, no unintended overlap, and all sender/receiver labels remain legible.
