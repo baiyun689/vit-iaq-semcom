@@ -1,0 +1,21 @@
+extends: cifar100.yaml
+name: stl10-native-audit
+output_dir: outputs/experiments/stl10_native_audit
+data:
+  name: stl10
+  native_size: 96
+  num_classes: 10
+  train_size: 4000
+  selection_size: 250
+  calibration_size: 250
+  audit_size: 500
+  test_size: 8000
+classifier:
+  weights: random
+  checkpoint: checkpoints/stl10_classifier.pt
+  mean: [0.485, 0.456, 0.406]
+  std: [0.229, 0.224, 0.225]
+transmission:
+  patch_size: 8
+experiment:
+  budgets: [55296, 110592, 221184]

@@ -1,0 +1,5 @@
+extends: cifar100_test.yaml
+name: cifar100-frozen-rayleigh-test
+output_dir: outputs/experiments/cifar100_rayleigh_test
+transmission:
+  channel: rayleigh

@@ -1,0 +1,85 @@
+<h2>三条路线的具体内容</h2>
+<p class="subtitle">逐条拆解：每个创新点做什么、怎么验证、故事怎么讲</p>
+
+<div class="section">
+  <h3 style="color:#0f9;">🅰️ 路线A：按学科维度拆成两个独立创新</h3>
+  <p style="font-size:13px;color:#aaa;margin-bottom:16px;">两个创新各自闭环，各自有独立的"问题→方法→验证"故事线。答辩时讲完一个再讲另一个，互不依赖。</p>
+
+  <div style="display:flex;gap:16px;flex-wrap:wrap;">
+    <div style="flex:1;min-width:280px;background:#1a1a2e;border-radius:8px;padding:20px;">
+      <div style="font-weight:700;font-size:15px;color:#e94560;margin-bottom:12px;">创新点 1：抗级联重要性感知源编码</div>
+      <div style="font-size:12px;color:#888;margin-bottom:8px;">通信领域 · 源编码创新</div>
+      <div style="font-size:13px;color:#ccc;line-height:1.7;">
+        <p><strong>问题：</strong>重要性感知编码中，动态比特分配产生变长码流 → 元信息描述各段长度 → 元信息受损→收端游标级联失步。这不是工程疏忽，是"自适应分配⇔元信息脆弱"的结构性矛盾。传统FEC只降概率不消除。</p>
+        <p style="margin-top:8px;"><strong>方法：</strong>提出<strong>非级联粗桶编码框架</strong>——基础层定长定位置（无需任何元信息），增强层按固定桶配置定长排布（游标推进只看桶配置，不依赖"哪个patch在哪个位置"），结构上永不失步。</p>
+        <p style="margin-top:8px;"><strong>验证：</strong>对比均匀基线（无自适应优势）vs IAQ+UEP（FEC保护但不彻底）vs 粗桶（自适应+结构防级联），在AWGN信道下扫SNR。粗桶在低SNR区域展示<strong>优雅退化而非悬崖</strong>。</p>
+      </div>
+    </div>
+
+    <div style="flex:1;min-width:280px;background:#1a1a2e;border-radius:8px;padding:20px;">
+      <div style="font-weight:700;font-size:15px;color:#0f9;margin-bottom:12px;">创新点 2：任务驱动收端语义修补</div>
+      <div style="font-size:12px;color:#888;margin-bottom:8px;">AI领域 · 学习式错误隐藏创新</div>
+      <div style="font-size:13px;color:#ccc;line-height:1.7;">
+        <p><strong>问题：</strong>非级联编码消除了级联，但信道误码仍造成局部值错配（某patch的增强细节被贴给相邻patch）。传统错误隐藏用MSE/插值等信号层指标修复——不知道什么对下游任务重要，可能"修了不重要的、漏了重要的"。</p>
+        <p style="margin-top:8px;"><strong>方法：</strong>轻量patch-Transformer，输入受损重建+<strong>免费比特深度图</strong>（收端解码副产品，标记各patch可靠性），输出残差修正。关键设计：①用<strong>分类任务损失</strong>训练（非MSE代理目标），②head零初始化→初始输出=输入→<strong>残差兜底保证永不帮倒忙</strong>。</p>
+        <p style="margin-top:8px;"><strong>验证：</strong>消融实验——修补开/关、可靠性图开/关、跨SNR vs 单点训练、任务损失 vs MSE损失；可视化修补前后patch差异。</p>
+      </div>
+    </div>
+  </div>
+  <div style="margin-top:12px;font-size:12px;color:#aaa;text-align:center;">答辩故事："我先解决通信层面的结构性脆弱→再引入AI把残余局部损伤补回来→两层各司其职"</div>
+</div>
+
+<div class="section">
+  <h3 style="color:#ffa500;">🅱️ 路线B：递进叙事（发现→分析→方案）</h3>
+  <p style="font-size:13px;color:#aaa;margin-bottom:16px;">一个完整的"提出问题→深入分析→系统性解决"研究闭环。故事张力来自分析的深度和方案的完整性。</p>
+
+  <div style="display:flex;gap:16px;flex-wrap:wrap;">
+    <div style="flex:1;min-width:280px;background:#1a1a2e;border-radius:8px;padding:20px;">
+      <div style="font-weight:700;font-size:15px;color:#e94560;margin-bottom:12px;">创新点 1：重要性感知语义通信的元信息脆弱性分析</div>
+      <div style="font-size:13px;color:#ccc;line-height:1.7;">
+        <p><strong>这个创新点的核心是"分析深度"而非"发现现象"：</strong></p>
+        <p style="margin-top:8px;">▸ <strong>形式化建模：</strong>将元信息差错建模为游标随机游走，分析失步概率与SNR/保护强度的闭式关系</p>
+        <p>▸ <strong>悬崖特征刻画：</strong>不是简单说"错了就崩"，而是定量描述悬崖位置(SNR阈值)、陡峭度、与传统FEC保护的消长关系</p>
+        <p>▸ <strong>领域性论证：</strong>为什么这个问题在传统通信中有成熟方案但在语义通信中被忽视——传统方案假设比特同等重要(均一码率)，语义通信的变长自适应打破了这一前提</p>
+        <p>▸ <strong>系统性实验：</strong>不只在一组参数下展示悬崖，而是扫变SNR/FEC强度/元信息编码方式，画出一族悬崖曲线</p>
+      </div>
+    </div>
+
+    <div style="flex:1;min-width:280px;background:#1a1a2e;border-radius:8px;padding:20px;">
+      <div style="font-weight:700;font-size:15px;color:#0f9;margin-bottom:12px;">创新点 2：非级联编码+任务驱动修补协同方案</div>
+      <div style="font-size:13px;color:#ccc;line-height:1.7;">
+        <p><strong>合并为一个系统创新，强调协同：</strong></p>
+        <p style="margin-top:8px;">▸ 粗桶编码消除级联（结构性免疫，非概率性降险）</p>
+        <p>▸ AI修补补偿局部损伤（任务驱动，非信号驱动）</p>
+        <p>▸ 两者协同：编码层保证<strong>错误范围可控</strong>（修补网络的输入分布稳定），修补网络只需在<strong>已知的局部损伤模式</strong>上工作</p>
+        <p>▸ 六线对照实验：理想上界/均匀基线/裸传悬崖/FEC保护/粗桶/粗桶+修补，在匹配和失配双场景下对比</p>
+      </div>
+    </div>
+  </div>
+  <div style="margin-top:12px;font-size:12px;color:#aaa;text-align:center;">
+    ⚠️ 风险：创新点1的"分量感"取决于分析的形式化深度——如果停留在"跑了个实验发现悬崖"，评委可能觉得只是"报告了一个现象"
+  </div>
+</div>
+
+<div class="section">
+  <h3 style="color:#888;">🅲 路线C：保留方案、横向扩展</h3>
+  <p style="font-size:13px;color:#aaa;margin-bottom:16px;">把现有工作合并为一个创新点，找一个全新维度做第二个创新点。</p>
+
+  <div style="display:flex;flex-direction:column;gap:10px;margin:12px 0;">
+    <div style="background:#1a1a2e;border-radius:8px;padding:14px;">
+      <div style="font-weight:700;color:#fff;font-size:13px;">候选C1：多视图语义通信的重要性感知融合</div>
+      <div style="font-size:12px;color:#aaa;">扩展到MIRO/MVP-N多视图数据集，研究跨视角注意力一致性与比特分配策略。工作量较大但领域扩展性强。</div>
+    </div>
+    <div style="background:#1a1a2e;border-radius:8px;padding:14px;">
+      <div style="font-weight:700;color:#fff;font-size:13px;">候选C2：注意力机制在量化/噪声下的鲁棒性理论分析</div>
+      <div style="font-size:12px;color:#aaa;">研究ViT注意力分数在量化失真和信道噪声下的统计行为——什么样的情况下注意力分布保持稳定？什么时候崩塌？这为语义通信系统设计提供理论基础。</div>
+    </div>
+    <div style="background:#1a1a2e;border-radius:8px;padding:14px;">
+      <div style="font-weight:700;color:#fff;font-size:13px;">候选C3：语义通信的"开销-精度-鲁棒性"三难权衡框架</div>
+      <div style="font-size:12px;color:#aaa;">理论化三个目标的消长关系，你的方案作为框架的一个实例（在三难空间中找到一个新 Pareto 最优点）。如果做得好分量很重，但理论难度高。</div>
+    </div>
+  </div>
+  <div style="margin-top:12px;font-size:12px;color:#e94560;text-align:center;">
+    ⚠️ 风险：时间成本高、可能分散精力，且新方向不一定比现有方向强
+  </div>
+</div>

@@ -1,0 +1,9 @@
+extends: cifar100.yaml
+name: cifar100-with-local-classifier
+output_dir: outputs/experiments/cifar100_local_classifier
+classifier:
+  weights: random
+  checkpoint: checkpoints/cifar100_classifier.pt
+  allow_random: false
+  mean: [0.485, 0.456, 0.406]
+  std: [0.229, 0.224, 0.225]

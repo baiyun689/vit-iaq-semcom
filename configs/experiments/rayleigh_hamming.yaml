@@ -1,0 +1,10 @@
+extends: smoke.yaml
+name: rayleigh-hamming-smoke
+output_dir: outputs/experiments/rayleigh_hamming_smoke
+transmission:
+  channel: rayleigh
+  code: hamming74
+experiment:
+  budgets: [12288]
+repair:
+  variants: [none, bitwise, prefix]

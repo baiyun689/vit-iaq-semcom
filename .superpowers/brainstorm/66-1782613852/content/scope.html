@@ -1,0 +1,81 @@
+<h2>从"修一篇论文的bug" → 到"解决一类问题"</h2>
+<p class="subtitle">核心策略：把具体发现抽象为领域级贡献</p>
+
+<div class="section">
+  <h3>📐 抽象层级对比</h3>
+  <div style="display:flex;gap:16px;flex-wrap:wrap;margin:16px 0;">
+    <div style="flex:1;min-width:200px;background:#2d132c;border-radius:8px;padding:20px;">
+      <div style="color:#e94560;font-size:13px;font-weight:700;margin-bottom:8px;">❌ 太窄（不能用）</div>
+      <div style="font-size:14px;color:#ddd;line-height:1.8;">
+        "Park et al. 的论文假设元信息无损传输，我发现了这个问题并修好了"
+      </div>
+      <div style="margin-top:12px;font-size:12px;color:#888;">读起来像 code review，不是论文贡献</div>
+    </div>
+    <div style="display:flex;align-items:center;color:#aaa;font-size:24px;">→</div>
+    <div style="flex:1.5;min-width:280px;background:#16213e;border-radius:8px;padding:20px;">
+      <div style="color:#0f9;font-size:13px;font-weight:700;margin-bottom:8px;">✅ 正确抽象（可以用）</div>
+      <div style="font-size:14px;color:#ddd;line-height:1.8;">
+        "<strong>重要性感知语义通信系统</strong>中，动态比特分配产生的<strong>变长码流结构</strong>对信道噪声存在<strong>级联脆弱性</strong>——这是一个被已有工作系统性忽视的<strong>基础性问题</strong>"
+      </div>
+      <div style="margin-top:12px;font-size:12px;color:#888;">问题属于整个领域，论文只是典型案例</div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>🏛️ 你的贡献应该属于哪个领域？</h3>
+  <p style="margin-bottom:16px;">你的工作天然横跨两个领域，这不是缺点——恰恰是故事张力所在：</p>
+  <div style="display:flex;gap:16px;flex-wrap:wrap;">
+    <div style="flex:1;min-width:220px;background:#1a1a2e;border-radius:8px;padding:20px;text-align:center;">
+      <div style="font-size:28px;margin-bottom:8px;">📡</div>
+      <div style="font-weight:700;font-size:15px;color:#e94560;">语义通信</div>
+      <div style="font-size:12px;color:#aaa;margin-top:6px;">Semantic Communications</div>
+      <div style="font-size:13px;color:#ccc;margin-top:10px;line-height:1.6;">源编码、信道建模、<br>比特分配、抗误码</div>
+    </div>
+    <div style="display:flex;align-items:center;color:#aaa;font-size:20px;">×</div>
+    <div style="flex:1;min-width:220px;background:#1a1a2e;border-radius:8px;padding:20px;text-align:center;">
+      <div style="font-size:28px;margin-bottom:8px;">🧠</div>
+      <div style="font-weight:700;font-size:15px;color:#0f9;">任务驱动AI</div>
+      <div style="font-size:12px;color:#aaa;margin-top:6px;">Task-Driven AI / Learning</div>
+      <div style="font-size:13px;color:#ccc;margin-top:10px;line-height:1.6;">ViT注意力、语义修补、<br>任务损失训练、残差兜底</div>
+    </div>
+  </div>
+  <p style="margin-top:16px;font-size:13px;color:#aaa;text-align:center;">你的独特位置：<strong>用AI的方法解决通信的问题</strong>（AI-centric semantic communication）</p>
+</div>
+
+<div class="section">
+  <h3>🔀 创新点重新定位的可能方案</h3>
+</div>
+
+<div class="options">
+  <div class="option" data-choice="framing-a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>方案A：通信系统创新 + AI方法创新（两个独立维度）</h3>
+      <p><strong>创新点1（通信）：</strong>面向抗误码的重要性感知源编码——揭示变长分配元信息的级联脆弱性，提出<strong>非级联粗桶编码</strong>框架（结构性消除级联失步，不依赖信道编码假设）</p>
+      <p><strong>创新点2（AI）：</strong>收端任务驱动语义修补——利用<strong>分类任务损失</strong>训练轻量修补网络（非像素MSE），残差兜底机制保证鲁棒退化；比特深度图作为<strong>免费可靠性先验</strong>引导修复</p>
+      <p style="margin-top:8px;font-size:13px;color:#0f9;">推荐指数：⭐⭐⭐⭐⭐ 各自独立、各自完整、合起来是完整系统</p>
+    </div>
+  </div>
+  <div class="option" data-choice="framing-b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>方案B：问题驱动的递进叙事（发现→分析→方案）</h3>
+      <p><strong>创新点1（领域问题发现）：</strong>系统性揭示<strong>重要性感知语义通信的元信息脆弱性</strong>——形式化分析变长编码在噪声信道下的级联失步机制，定量刻画"悬崖效应"（非局限于某篇论文，而是一类系统的共性缺陷）</p>
+      <p><strong>创新点2（系统方案）：</strong>提出"非级联编码+任务驱动修补"完整方案，从源编码结构（防级联）和收端智能（补损伤）两个层面协同解决</p>
+      <p style="margin-top:8px;font-size:13px;color:#ffa500;">推荐指数：⭐⭐⭐⭐ 故事连贯，但创新点1的"分量感"取决于分析深度</p>
+    </div>
+  </div>
+  <div class="option" data-choice="framing-c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>方案C：横向扩展一个全新创新点</h3>
+      <p><strong>创新点2保持：</strong>非级联编码+AI修补（核心系统方案，合并为一个）</p>
+      <p><strong>新创新点1候选：</strong></p>
+      <p style="font-size:13px;margin-left:16px;">▸ 注意力机制的量化鲁棒性分析（ViT注意力在量化/噪声下的行为规律）</p>
+      <p style="font-size:13px;margin-left:16px;">▸ 多视图语义通信的跨视角重要性融合（MIRO/MVP-N扩展）</p>
+      <p style="font-size:13px;margin-left:16px;">▸ 语义通信系统的"开销-精度-鲁棒性"三难权衡理论框架</p>
+      <p style="margin-top:8px;font-size:13px;color:#ffa500;">推荐指数：⭐⭐⭐ 自由度大但落地成本高，时间可能不够</p>
+    </div>
+  </div>
+</div>

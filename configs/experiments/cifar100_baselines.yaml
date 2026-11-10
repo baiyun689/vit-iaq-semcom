@@ -1,0 +1,7 @@
+extends: cifar100.yaml
+name: cifar100-native-baselines
+output_dir: outputs/experiments/cifar100_baselines
+experiment:
+  training_seeds: [0]
+repair:
+  variants: [none]

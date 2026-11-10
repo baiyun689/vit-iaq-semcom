@@ -1,0 +1,68 @@
+<h2>当前两个创新点的逻辑结构</h2>
+<p class="subtitle">问题驱动的递进故事：发现→分析→解决</p>
+
+<div class="section">
+  <h3>📌 故事主线：一条递进链</h3>
+  <div style="background:#1a1a2e;border-radius:8px;padding:24px;margin:16px 0;">
+    <div style="display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;">
+      <div style="background:#e94560;color:white;border-radius:8px;padding:16px 20px;text-align:center;min-width:160px;">
+        <div style="font-size:24px;margin-bottom:8px;">🔍</div>
+        <div style="font-weight:700;font-size:14px;">创新点 A</div>
+        <div style="font-size:12px;margin-top:4px;opacity:0.9;">发现"悬崖"</div>
+        <div style="font-size:11px;margin-top:6px;opacity:0.7;">元信息过信道→级联失步</div>
+      </div>
+      <div style="font-size:24px;color:#aaa;">→</div>
+      <div style="background:#0f3460;color:white;border-radius:8px;padding:16px 20px;text-align:center;min-width:160px;">
+        <div style="font-size:24px;margin-bottom:8px;">🔬</div>
+        <div style="font-weight:700;font-size:14px;">分析根因</div>
+        <div style="font-size:12px;margin-top:4px;opacity:0.9;">变长游标=单点故障</div>
+        <div style="font-size:11px;margin-top:6px;opacity:0.7;">FEC治标不治本</div>
+      </div>
+      <div style="font-size:24px;color:#aaa;">→</div>
+      <div style="background:#16213e;color:white;border-radius:8px;padding:16px 20px;text-align:center;min-width:160px;">
+        <div style="font-size:24px;margin-bottom:8px;">💡</div>
+        <div style="font-weight:700;font-size:14px;">创新点 B</div>
+        <div style="font-size:12px;margin-top:4px;opacity:0.9;">解决"悬崖"</div>
+        <div style="font-size:11px;margin-top:6px;opacity:0.7;">非级联编码+AI修补</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>🤔 核心问题：这是一条故事还是两条？</h3>
+  <p>当前结构是"发现问题→解决问题"的<strong>递进叙事</strong>。答辩评委可能认为这是<strong>一个创新点的两个环节</strong>，而非两个独立贡献。</p>
+</div>
+
+<div class="section">
+  <h3>🔀 三条可能的路线</h3>
+</div>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>路线一：保持递进，但把每个环节"升级"为独立创新点</h3>
+      <p>创新点1 = 元信息脆弱性系统性分析(不只是悬崖现象，而是形式化证明变长编码在噪声信道下的脆弱性边界)</p>
+      <p>创新点2 = 粗桶+修补方案(源编码创新 + AI修补创新，合并为一个系统方案)</p>
+      <p style="margin-top:8px;font-size:13px;color:#888;">风险：如果创新点1只是"发现bug"，分量可能不够</p>
+    </div>
+  </div>
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>路线二：拆成两个正交维度的独立创新</h3>
+      <p>创新点1 = <strong>源编码层面</strong>：非级联粗桶重要性编码（结构性抗误码，不依赖AI）</p>
+      <p>创新点2 = <strong>收端智能层面</strong>：任务驱动的语义修补（AI-centric，零带宽，残差兜底）</p>
+      <p style="margin-top:8px;font-size:13px;color:#888;">优势：各自有独立价值、独立可验证、可写两篇论文</p>
+    </div>
+  </div>
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>路线三：重新定位，换一个创新点</h3>
+      <p>保留创新点2(粗桶+修补)，放弃创新点1(悬崖发现)，寻找一个<strong>不同维度</strong>的第二创新点</p>
+      <p style="margin-top:8px;font-size:13px;color:#888;">比如：多视图扩展、收端token级错误隐藏、注意力蒸馏的鲁棒性分析……</p>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,5 @@
+extends: cifar100_test.yaml
+name: cifar100-frozen-mismatch-test
+output_dir: outputs/experiments/cifar100_mismatch_test
+transmission:
+  noise_mismatch_db: 2.0

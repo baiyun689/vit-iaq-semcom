@@ -1,0 +1,118 @@
+<h2>传统通信的解决办法 vs 为什么在语义通信中不够</h2>
+<p class="subtitle">诚实对比：传统方案能做什么、不能做什么</p>
+
+<div class="section">
+  <h3>🔧 传统通信有三板斧</h3>
+
+  <div style="display:flex;flex-direction:column;gap:12px;margin:16px 0;">
+
+    <div style="background:#1a1a2e;border-radius:8px;padding:16px;border-left:3px solid #ffa500;">
+      <div style="font-weight:700;color:#ffa500;margin-bottom:4px;">板斧① CRC + ARQ（检错重传）</div>
+      <div style="font-size:13px;color:#ccc;line-height:1.6;">帧头加 CRC 校验 → 发现错误 → 请求发端重传 → 收端拿到正确元信息</div>
+      <div style="font-size:12px;color:#e94560;margin-top:6px;">❌ 语义通信场景常对延迟敏感，重传违背实时性；且需要反馈信道</div>
+    </div>
+
+    <div style="background:#1a1a2e;border-radius:8px;padding:16px;border-left:3px solid #ffa500;">
+      <div style="font-weight:700;color:#ffa500;margin-bottom:4px;">板斧② UEP（不等差错保护）</div>
+      <div style="font-size:13px;color:#ccc;line-height:1.6;">给元信息更强的 FEC 保护（如低码率重复码），载荷弱保护 → 元信息极难出错</div>
+      <div style="font-size:12px;color:#e94560;margin-top:6px;">❌ 能压低悬崖触发概率，但本质是概率性方案：FEC 仍有残差误码率，SNR 低到某个点照样崩。且 FEC 膨胀的比特从载荷预算里扣——保护越强，给 patch 的比特越少，精度越低</div>
+    </div>
+
+    <div style="background:#1a1a2e;border-radius:8px;padding:16px;border-left:3px solid #ffa500;">
+      <div style="font-weight:700;color:#ffa500;margin-bottom:4px;">板斧③ 定长帧结构</div>
+      <div style="font-size:13px;color:#ccc;line-height:1.6;">所有数据段统一长度 → 不需要传长度元信息 → 根本上消除级联问题</div>
+      <div style="font-size:12px;color:#e94560;margin-top:6px;">❌ 直接废除重要性自适应——所有 patch 一样多比特，重要 patch 不够精细、不重要 patch 浪费带宽。把"重要性感知"这个核心优势给扔了</div>
+    </div>
+
+  </div>
+</div>
+
+<div class="section">
+  <h3>🎯 核心矛盾：一个真正的 trade-off</h3>
+  <div style="background:#16213e;border-radius:8px;padding:20px;margin:16px 0;">
+    <div style="display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;">
+      <div style="text-align:center;min-width:140px;">
+        <div style="font-size:28px;">🎯</div>
+        <div style="font-weight:700;color:#0f9;font-size:14px;">想要</div>
+        <div style="font-size:12px;color:#ccc;margin-top:4px;">动态重要性分配<br>（节省带宽）</div>
+      </div>
+      <div style="font-size:20px;color:#e94560;font-weight:700;">⇔</div>
+      <div style="text-align:center;min-width:140px;">
+        <div style="font-size:28px;">🛡️</div>
+        <div style="font-weight:700;color:#e94560;font-size:14px;">就必须接受</div>
+        <div style="font-size:12px;color:#ccc;margin-top:4px;">元信息传输<br>（产生脆弱性）</div>
+      </div>
+    </div>
+    <p style="text-align:center;color:#aaa;font-size:13px;margin-top:16px;">这是<strong>结构性矛盾</strong>，不是工程疏忽。传统方案要么牺牲实时性（重传）、要么牺牲带宽效率（UEP）、要么牺牲自适应能力（定长）。</p>
+  </div>
+</div>
+
+<div class="section">
+  <h3>💡 你的创新：结构性地解决这个矛盾</h3>
+  <p>不是"用传统方法修论文的 bug"，而是提出了传统方法之外的新路径：</p>
+
+  <div style="overflow-x:auto;">
+    <table style="width:100%;border-collapse:collapse;font-size:13px;margin-top:12px;">
+      <tr style="border-bottom:1px solid #333;">
+        <th style="padding:10px;text-align:left;color:#aaa;width:18%;">方案</th>
+        <th style="padding:10px;text-align:center;color:#aaa;width:18%;">保留动态分配？</th>
+        <th style="padding:10px;text-align:center;color:#aaa;width:18%;">消除级联？</th>
+        <th style="padding:10px;text-align:center;color:#aaa;width:18%;">不依赖重传？</th>
+        <th style="padding:10px;text-align:center;color:#aaa;width:18%;">不牺牲带宽？</th>
+      </tr>
+      <tr style="border-bottom:1px solid #2a2a3e;">
+        <td style="padding:10px;color:#fff;">CRC+ARQ</td>
+        <td style="padding:10px;text-align:center;color:#0f9;">✅</td>
+        <td style="padding:10px;text-align:center;color:#0f9;">✅</td>
+        <td style="padding:10px;text-align:center;color:#e94560;">❌ 需重传</td>
+        <td style="padding:10px;text-align:center;color:#0f9;">✅</td>
+      </tr>
+      <tr style="border-bottom:1px solid #2a2a3e;">
+        <td style="padding:10px;color:#fff;">UEP (强FEC)</td>
+        <td style="padding:10px;text-align:center;color:#0f9;">✅</td>
+        <td style="padding:10px;text-align:center;color:#ffa500;">⚠ 概率性</td>
+        <td style="padding:10px;text-align:center;color:#0f9;">✅</td>
+        <td style="padding:10px;text-align:center;color:#e94560;">❌ FEC吃带宽</td>
+      </tr>
+      <tr style="border-bottom:1px solid #2a2a3e;">
+        <td style="padding:10px;color:#fff;">固定码率</td>
+        <td style="padding:10px;text-align:center;color:#e94560;">❌ 放弃自适应</td>
+        <td style="padding:10px;text-align:center;color:#0f9;">✅</td>
+        <td style="padding:10px;text-align:center;color:#0f9;">✅</td>
+        <td style="padding:10px;text-align:center;color:#0f9;">✅</td>
+      </tr>
+      <tr style="background:#0f3460;">
+        <td style="padding:10px;color:#0f9;font-weight:700;">你的方案<br><span style="font-size:11px;color:#aaa;">粗桶+AI修补</span></td>
+        <td style="padding:10px;text-align:center;color:#0f9;font-weight:700;">✅</td>
+        <td style="padding:10px;text-align:center;color:#0f9;font-weight:700;">✅ 结构性</td>
+        <td style="padding:10px;text-align:center;color:#0f9;font-weight:700;">✅</td>
+        <td style="padding:10px;text-align:center;color:#0f9;font-weight:700;">✅</td>
+      </tr>
+    </table>
+  </div>
+</div>
+
+<div class="section">
+  <h3>🧬 你的方案为什么能做到"全对勾"？</h3>
+  <div style="display:flex;flex-direction:column;gap:12px;margin:16px 0;">
+
+    <div style="background:#1a1a2e;border-radius:8px;padding:16px;">
+      <div style="font-weight:700;color:#0f9;margin-bottom:4px;">① 源编码层面：定长定位，结构防级联</div>
+      <div style="font-size:13px;color:#ccc;line-height:1.6;">
+        基础层每 patch 固定 m_base bit（均匀量化，不依赖任何元信息）；增强层按<strong>桶配置</strong>（固定大小固定比特）定长排布——收端游标推进<strong>只看桶配置不看哪个 patch 落在哪个位置</strong>。即使收端排序与发端不一致（信道误码导致），游标也按同一固定步长推进，<strong>永不失步</strong>。
+      </div>
+    </div>
+
+    <div style="background:#1a1a2e;border-radius:8px;padding:16px;">
+      <div style="font-weight:700;color:#0f9;margin-bottom:4px;">② 收端AI层面：任务驱动修补局部损伤</div>
+      <div style="font-size:13px;color:#ccc;line-height:1.6;">
+        非级联保证的是"只局部错、不全局崩"——但局部损伤仍然存在（某个 patch 的细节值贴给了相邻 patch）。修补网络吃<strong>受损重建 + 免费比特深度图</strong>（低比特 patch 更不可信→更靠上下文修复），用<strong>分类任务损失</strong>训练（不是逼近干净图），残差兜底保证<strong>最坏≈不修</strong>。
+      </div>
+    </div>
+
+  </div>
+
+  <p style="margin-top:16px;font-size:14px;color:#ccc;text-align:center;">
+    关键区别：传统方案是<strong>概率性防御</strong>（降误码率），你的方案是<strong>结构性免疫</strong>（让级联在结构上不可能发生）。
+  </p>
+</div>

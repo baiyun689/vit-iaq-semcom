@@ -1,0 +1,18 @@
+extends: cifar100.yaml
+name: cifar100-native-check
+output_dir: outputs/experiments/cifar100_native_check
+device: cpu
+data:
+  train_size: 4
+  selection_size: 2
+  calibration_size: 2
+  audit_size: 2
+  test_size: 2
+experiment:
+  budgets: [6144, 12288]
+  snrs: [0, 6]
+  channel_seeds: [0]
+  training_seeds: [0]
+  bootstrap_samples: 200
+repair:
+  variants: [none]

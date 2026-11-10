@@ -1,0 +1,115 @@
+<h2>粗桶收益低？—— 恰恰是设计意图</h2>
+<p class="subtitle">粗桶和修补不是"各自贡献再相加"，而是"前者让后者成为可能"</p>
+
+<div class="section">
+  <h3>🎯 核心论点：粗桶的贡献不在精度，在"可修性"</h3>
+  <p>你的实验里粗桶本身收益低，这不是 bug，而是 <strong>feature</strong>。粗桶不做修补时，增强层的局部错配确实会吃掉一部分重要性分配的红利——但粗桶真正的价值是它<strong>为修补网络创造了三个不可或缺的条件</strong>：</p>
+</div>
+
+<div class="section">
+  <h3>🔑 粗桶给修补网络的三个"使能条件"</h3>
+
+  <div style="display:flex;flex-direction:column;gap:12px;margin:16px 0;">
+
+    <div style="background:#1a1a2e;border-radius:8px;padding:18px;border-left:3px solid #e94560;">
+      <div style="font-weight:700;color:#e94560;margin-bottom:6px;">条件① 结构化损伤（而非完全垃圾）</div>
+      <div style="display:flex;gap:12px;align-items:flex-start;">
+        <div style="flex:1;">
+          <div style="font-size:11px;color:#888;margin-bottom:4px;">没有粗桶（级联崩溃）</div>
+          <div style="background:#2d132c;border-radius:4px;padding:8px;font-size:12px;color:#e94560;">
+            游标失步 → 后续所有 patch 从错误位置读比特 → 重建图完全是噪声 → 修补网络<strong>无任何可信信息可用</strong>
+          </div>
+        </div>
+        <div style="flex:1;">
+          <div style="font-size:11px;color:#888;margin-bottom:4px;">有粗桶（局部错配）</div>
+          <div style="background:#16213e;border-radius:4px;padding:8px;font-size:12px;color:#0f9;">
+            游标不错 → 每个 patch 至少拿到正确的基础层 + 某个(可能错配的)增强层 → 重建图<strong>结构完整、局部有误</strong> → 修补网络有大量可信上下文可用
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="background:#1a1a2e;border-radius:8px;padding:18px;border-left:3px solid #e94560;">
+      <div style="font-weight:700;color:#e94560;margin-bottom:6px;">条件② 免费可靠性图（告诉修补器"修哪里"）</div>
+      <div style="font-size:13px;color:#ccc;line-height:1.7;">
+        粗桶解码过程中，收端派生的<strong>比特深度图</strong>是免费的副产品——它精确标记了每个 patch 拿到了多少比特。低比特 patch → 更不可信 → 修补网络知道该<strong>重点依赖上下文</strong>修复这些区域。没有粗桶结构，就无法生成这个可靠性先验——均匀量化下所有 patch 同比特数，维修网络不知道哪个 patch 更可疑。
+      </div>
+    </div>
+
+    <div style="background:#1a1a2e;border-radius:8px;padding:18px;border-left:3px solid #e94560;">
+      <div style="font-weight:700;color:#e94560;margin-bottom:6px;">条件③ 质量地板（残差兜底的保证）</div>
+      <div style="font-size:13px;color:#ccc;line-height:1.7;">
+        基础层（固定 m_base bit 均匀量化）提供每 patch 的<strong>最低保底质量</strong>。修补网络 head 零初始化 → 初始输出=输入 → 最坏情况不修 = 退回到基础层质量。这个"地板"保证修补网络的残差机制有<strong>稳定的下界</strong>。没有基础层 → 低 SNR 下某些 patch 可能完全没有可用信息 → 修补网络输出的残差可能让情况更糟。
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="section">
+  <h3>📐 逻辑链：为什么两者不可分割</h3>
+  <div style="background:#1a1a2e;border-radius:8px;padding:20px;margin:16px 0;">
+    <div style="display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;font-size:13px;">
+      <div style="background:#0f3460;color:white;border-radius:6px;padding:10px 14px;text-align:center;">
+        <strong>信道误码</strong><br>
+        <span style="font-size:11px;opacity:0.8;">不可避免</span>
+      </div>
+      <span style="color:#aaa;">→</span>
+      <div style="background:#16213e;color:white;border-radius:6px;padding:10px 14px;text-align:center;">
+        <strong>粗桶编码</strong><br>
+        <span style="font-size:11px;opacity:0.8;">防止级联扩散</span>
+        <div style="font-size:10px;color:#0f9;margin-top:2px;">→ 错误局部化</div>
+      </div>
+      <span style="color:#aaa;">→</span>
+      <div style="background:#16213e;color:white;border-radius:6px;padding:10px 14px;text-align:center;">
+        <strong>可靠性图</strong><br>
+        <span style="font-size:11px;opacity:0.8;">标记损伤位置</span>
+        <div style="font-size:10px;color:#0f9;margin-top:2px;">→ 告诉修补器修哪</div>
+      </div>
+      <span style="color:#aaa;">→</span>
+      <div style="background:#1a3a1a;color:white;border-radius:6px;padding:10px 14px;text-align:center;">
+        <strong>修补网络</strong><br>
+        <span style="font-size:11px;opacity:0.8;">上下文修复损伤</span>
+        <div style="font-size:10px;color:#0f9;margin-top:2px;">→ 精度恢复</div>
+      </div>
+    </div>
+  </div>
+  <p style="text-align:center;font-size:14px;color:#0f9;font-weight:700;">粗桶的贡献不直接体现在精度曲线上，而是<strong>为修补网络创造了可工作的条件</strong>。</p>
+</div>
+
+<div class="section">
+  <h3>🧪 实验上如何证明这个关系？</h3>
+  <p>如果评委追问"粗桶的贡献到底在哪"，你需要<strong>关键对照实验</strong>来展示粗桶的"使能"角色：</p>
+
+  <div style="background:#1a1a2e;border-radius:8px;padding:16px;margin:12px 0;">
+    <div style="font-weight:700;color:#ffa500;margin-bottom:8px;">建议增加的消融线：</div>
+    <table style="width:100%;border-collapse:collapse;font-size:12px;">
+      <tr style="border-bottom:1px solid #333;">
+        <th style="padding:8px;text-align:left;color:#aaa;">实验线</th>
+        <th style="padding:8px;text-align:left;color:#aaa;">说明</th>
+        <th style="padding:8px;text-align:left;color:#aaa;">预期结果</th>
+      </tr>
+      <tr style="border-bottom:1px solid #2a2a3e;">
+        <td style="padding:8px;color:#fff;">④ 粗桶(无修补)</td>
+        <td style="padding:8px;color:#ccc;">已有</td>
+        <td style="padding:8px;color:#ffa500;">收益低——局部错配吃掉红利</td>
+      </tr>
+      <tr style="border-bottom:1px solid #2a2a3e;">
+        <td style="padding:8px;color:#fff;">⑤ 粗桶+修补</td>
+        <td style="padding:8px;color:#ccc;">已有</td>
+        <td style="padding:8px;color:#0f9;">收益高——局部错配被修复</td>
+      </tr>
+      <tr style="border-bottom:1px solid #2a2a3e;background:#0f3460;">
+        <td style="padding:8px;color:#0f9;font-weight:700;">⑦ 均匀+修补 ⭐</td>
+        <td style="padding:8px;color:#ccc;">给均匀量化也加同一个修补网络（但没有可靠性图输入）</td>
+        <td style="padding:8px;color:#0f9;">增益远低于⑤——证明<strong>修补需要粗桶提供的可靠性图</strong></td>
+      </tr>
+      <tr style="border-bottom:1px solid #2a2a3e;background:#0f3460;">
+        <td style="padding:8px;color:#0f9;font-weight:700;">⑧ 粗桶+修补(去可靠性图) ⭐</td>
+        <td style="padding:8px;color:#ccc;">修补网络去除比特深度可靠性图输入</td>
+        <td style="padding:8px;color:#0f9;">增益下降——证明<strong>可靠性图是关键输入</strong></td>
+      </tr>
+    </table>
+  </div>
+  <p style="font-size:13px;color:#aaa;">有了⑦⑧这两条消融线，你就可以理直气壮地说：<strong>"粗桶的贡献不是单纯的精度提升，而是为修补网络提供了可工作的损伤结构和免费的可靠性先验——这两者缺了哪个，修补效果都大打折扣。"</strong></p>
+</div>

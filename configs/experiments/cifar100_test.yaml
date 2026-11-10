@@ -1,0 +1,6 @@
+extends: cifar100_repair.yaml
+name: cifar100-native-test
+output_dir: outputs/experiments/cifar100_test
+experiment:
+  split: test
+  channel_seeds: [10, 11, 12]

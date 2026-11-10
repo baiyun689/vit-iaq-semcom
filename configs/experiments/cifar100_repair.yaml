@@ -1,0 +1,8 @@
+extends: cifar100.yaml
+name: cifar100-native-repair
+output_dir: outputs/experiments/cifar100_repair
+experiment:
+  methods: [addressed]
+  budgets: [12288]
+repair:
+  variants: [none, image, bitwise, uncertainty, prefix]

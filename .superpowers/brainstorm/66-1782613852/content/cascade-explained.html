@@ -1,0 +1,96 @@
+<h2>级联失步机制详解</h2>
+<p class="subtitle">为什么一个比特的元信息错误可以毁掉整张图</p>
+
+<div class="section">
+  <h3>📦 论文方案的数据格式</h3>
+  <p>发端把 196 个 patch 各自量化成不同长度的比特段，拼接成一条长比特流发给收端。收端怎么知道哪里切分？靠 <strong>Mᵢ 图</strong>（每 patch 用了多少比特）作为"说明书"。</p>
+
+  <div style="background:#1a1a2e;border-radius:8px;padding:20px;margin:16px 0;font-family:monospace;font-size:13px;line-height:2;overflow-x:auto;">
+    <div style="color:#888;margin-bottom:8px;">📋 元信息 Mᵢ 图（196 个数字，每个 0~8）：</div>
+    <div style="color:#e94560;">[8, 7, 7, 6, 6, 5, 5, 4, 4, 3, 3, 2, 2, 1, ...] ← <strong>这就是命门</strong></div>
+    <div style="color:#888;margin-top:12px;">📦 载荷比特流（按 Mᵢ 顺序拼接，总长度 = ΣMᵢ × 768）：</div>
+    <div style="color:#0f9;word-break:break-all;">01001110...0101  |  1011001...110  |  010110...0011  |  ...</div>
+    <div style="color:#aaa;font-size:11px;margin-top:4px;">&nbsp;&nbsp;&nbsp;&nbsp;patch0: 8×768=6144bit&nbsp;&nbsp;&nbsp;patch1:7×768=5376bit&nbsp;&nbsp;patch2:7×768=5376bit</div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>💥 级联崩盘机制</h3>
+  <p>信道噪声翻转了 M₂ 的一个比特（比如 7→3），会发生什么？</p>
+
+  <div style="background:#1a1a2e;border-radius:8px;padding:20px;margin:16px 0;overflow-x:auto;">
+    <table style="width:100%;border-collapse:collapse;font-size:13px;">
+      <tr style="border-bottom:1px solid #333;">
+        <th style="padding:8px;text-align:left;color:#aaa;">Patch</th>
+        <th style="padding:8px;text-align:center;color:#aaa;">发端 Mᵢ</th>
+        <th style="padding:8px;text-align:center;color:#aaa;">收端收到 Mᵢ</th>
+        <th style="padding:8px;text-align:left;color:#aaa;">收端切了多少 bit</th>
+        <th style="padding:8px;text-align:left;color:#aaa;">后果</th>
+      </tr>
+      <tr style="border-bottom:1px solid #2a2a3e;">
+        <td style="padding:8px;color:#fff;">patch₀</td>
+        <td style="padding:8px;text-align:center;color:#0f9;">8</td>
+        <td style="padding:8px;text-align:center;color:#0f9;">8 ✓</td>
+        <td style="padding:8px;color:#ccc;">6144 bit</td>
+        <td style="padding:8px;color:#0f9;">✅ 正确</td>
+      </tr>
+      <tr style="border-bottom:1px solid #2a2a3e;">
+        <td style="padding:8px;color:#fff;">patch₁</td>
+        <td style="padding:8px;text-align:center;color:#0f9;">7</td>
+        <td style="padding:8px;text-align:center;color:#0f9;">7 ✓</td>
+        <td style="padding:8px;color:#ccc;">5376 bit</td>
+        <td style="padding:8px;color:#0f9;">✅ 正确</td>
+      </tr>
+      <tr style="background:#2d132c;border-bottom:1px solid #2a2a3e;">
+        <td style="padding:8px;color:#fff;">patch₂</td>
+        <td style="padding:8px;text-align:center;color:#e94560;">7</td>
+        <td style="padding:8px;text-align:center;color:#e94560;font-weight:700;">3 ❌</td>
+        <td style="padding:8px;color:#e94560;">只读了 2304 bit（少了 3072）</td>
+        <td style="padding:8px;color:#e94560;">🔥 游标偏移！</td>
+      </tr>
+      <tr style="border-bottom:1px solid #2a2a3e;">
+        <td style="padding:8px;color:#fff;">patch₃</td>
+        <td style="padding:8px;text-align:center;color:#0f9;">6</td>
+        <td style="padding:8px;text-align:center;color:#0f9;">6 ✓</td>
+        <td style="padding:8px;color:#e94560;">读的是 patch₂ 剩余的 3072 bit + patch₃ 的前 1536 bit</td>
+        <td style="padding:8px;color:#e94560;">🔥 全错！</td>
+      </tr>
+      <tr>
+        <td style="padding:8px;color:#fff;">patch₄~₁₉₅</td>
+        <td style="padding:8px;text-align:center;color:#aaa;">...</td>
+        <td style="padding:8px;text-align:center;color:#aaa;">...</td>
+        <td style="padding:8px;color:#e94560;">全部从错误位置开始读</td>
+        <td style="padding:8px;color:#e94560;">🔥🔥🔥 194 个 patch 全毁！</td>
+      </tr>
+    </table>
+  </div>
+
+  <p style="margin-top:12px;color:#e94560;font-weight:700;">一个 bit 的元信息错误 → 游标永久偏移 → 后续所有 patch 的比特边界全错 → 整张图重建崩塌。</p>
+</div>
+
+<div class="section">
+  <h3>📈 悬崖效应的实验证据</h3>
+  <p>这就是你之前跑的 cliff 实验：元信息一旦过信道（哪怕 SNR 不高不低），分类准确率从 ~88% 直接掉到 ~1%（随机猜测水平）。而非"优雅退化"。</p>
+
+  <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;">
+    <div style="flex:1;min-width:200px;background:#16213e;border-radius:8px;padding:16px;text-align:center;">
+      <div style="font-size:13px;color:#888;margin-bottom:4px;">正常退化（期望）</div>
+      <div style="font-size:24px;color:#0f9;">📉 缓慢下降</div>
+      <div style="font-size:12px;color:#aaa;margin-top:4px;">SNR↓ → 误码↑ → 精度渐降</div>
+    </div>
+    <div style="flex:1;min-width:200px;background:#2d132c;border-radius:8px;padding:16px;text-align:center;">
+      <div style="font-size:13px;color:#888;margin-bottom:4px;">悬崖退化（实际）</div>
+      <div style="font-size:24px;color:#e94560;">🧨 断崖下跌</div>
+      <div style="font-size:12px;color:#aaa;margin-top:4px;">某个 SNR 阈值 → 级联触发 → 瞬间归零</div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>🔑 根因：变长编码 + 游标解析 = 单点故障</h3>
+  <p>这不是 Park et al. 论文特有的问题，而是<strong>所有使用"变长码流 + 元信息描述边界"的语义通信方案</strong>的共性缺陷：</p>
+  <div style="background:#1a1a2e;border-radius:8px;padding:16px;margin:8px 0;">
+    <p style="color:#ccc;line-height:1.8;margin:0;">只要收端解析依赖<strong>元信息来确定每个数据段的长度</strong>，元信息中的任何一个错误就会导致<strong>游标偏移</strong>，而游标偏移后的<strong>所有数据都从错误位置读取</strong>——错误范围从<strong>局部扩散到全局</strong>，形成级联灾难。</p>
+  </div>
+  <p>这就是为什么传统数字通信中，帧头/包头都有 CRC 校验和重传机制——因为一旦帧边界丢失，后续全废。但在语义通信领域，这个问题尚未被系统性讨论。</p>
+</div>

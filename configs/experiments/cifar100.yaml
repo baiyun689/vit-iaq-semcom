@@ -1,0 +1,44 @@
+schema_version: 1
+name: cifar100-native-audit
+output_dir: outputs/experiments/cifar100_native_audit
+device: cuda
+data:
+  name: cifar100
+  root: data
+  download: false
+  native_size: 32
+  num_classes: 100
+  train_size: 40000
+  selection_size: 2500
+  calibration_size: 2500
+  audit_size: 5000
+  test_size: 10000
+classifier:
+  kind: vit
+  arch: vit_base_patch16_224
+  weights: hf:edadaltocg/vit_base_patch16_224_in21k_ft_cifar100
+  input_size: 224
+  mean: [0.5, 0.5, 0.5]
+  std: [0.5, 0.5, 0.5]
+transmission:
+  patch_size: 4
+  code: repetition
+  channel: awgn
+  decode: soft
+experiment:
+  methods: [uniform, iaq, addressed]
+  budgets: [6144, 12288, 24576]
+  snrs: [-4, -2, 0, 2, 4, 6, 8, 10, 12]
+  channel_seeds: [0, 1, 2]
+  training_seeds: [0, 1, 2]
+  split: audit
+  bootstrap_samples: 10000
+repair:
+  variants: [none, image, depth, llr, bitwise, uncertainty, prefix]
+  dim: 96
+  depth: 2
+  heads: 3
+training:
+  epochs: 20
+  batch_size: 8
+  grad_accum: 4

@@ -1,0 +1,7 @@
+extends: smoke.yaml
+name: native-smoke-frozen-test
+output_dir: outputs/experiments/native_smoke_test
+experiment:
+  split: test
+  snrs: [-2, 8]
+  channel_seeds: [10, 11]

@@ -1,0 +1,23 @@
+schema_version: 1
+name: native-smoke
+output_dir: outputs/experiments/native_smoke
+device: cpu
+data:
+  name: synthetic
+  train_size: 8
+  selection_size: 4
+  calibration_size: 4
+  audit_size: 4
+  test_size: 4
+experiment:
+  methods: [uniform, iaq, addressed]
+  budgets: [6144]
+  snrs: [0, 6]
+  channel_seeds: [0, 1]
+  training_seeds: [0]
+  bootstrap_samples: 200
+repair:
+  variants: [none, image, prefix]
+training:
+  epochs: 1
+  batch_size: 4

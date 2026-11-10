@@ -1,0 +1,422 @@
+{
+  "created": "2026-10-08",
+  "purpose": "Exact current legacy files including uncommitted edits; restore into a separate directory",
+  "archive": "legacy_code_20261008.zip",
+  "archive_sha256": "e95ab9dab8428a0acfcc243218fc92f51f1041ef9b2ebdb400d38bb5adf761b9",
+  "files": [
+    {
+      "path": "configs/default.yaml",
+      "bytes": 2444,
+      "sha256": "7217479a5b472354f01e5ae516e044f04165e7d621bd4c6ca8db21f9359f1cec",
+      "remove_from_active_tree": true
+    },
+    {
+      "path": "pyproject.toml",
+      "bytes": 698,
+      "sha256": "78f046a0a2292eab7df10efd82649249cb6c4d89b9633ab53ca18061c9009e2e",
+      "remove_from_active_tree": false
+    },
+    {
+      "path": "README.md",
+      "bytes": 5952,
+      "sha256": "f97736e9494c1848db6307222133b91e41fc0328690afb4dc296d1a24fb2a2b9",
+      "remove_from_active_tree": false
+    },
+    {
+      "path": "requirements.txt",
+      "bytes": 179,
+      "sha256": "ec1d921ce5f15a0ba5537cac12e6415dfc61a886d897f05b6d9a2ca1a9fda34e",
+      "remove_from_active_tree": false
+    },
+    {
+      "path": "scripts/_drawio_url.js",
+      "bytes": 837,
+      "sha256": "51ca0e5926c3a08287dc456a539825bc000a5a5e41fbb95f5bfc460fc886e803",
+      "remove_from_active_tree": true
+    },
+    {
+      "path": "scripts/_gen_23_docx.py",
+      "bytes": 3717,
+      "sha256": "07ad4d2232adceefb0771f83eeb90d25fdbae01e30b0b6427fb813ea99c7bd85",
+      "remove_from_active_tree": true
+    },
+    {
+      "path": "scripts/_gen_24_docx.py",
+      "bytes": 3617,
+      "sha256": "6a6b1821d32290bf33c165ac8b5a989f8136545968dcd951854ccf1dc5a16591",
+      "remove_from_active_tree": true
+    },
+    {
+      "path": "scripts/_gen_25_docx.py",
+      "bytes": 3471,
+      "sha256": "6bcd2cf89e98e11e988a6f9f89918604dc5545c90cbfa3f79b2c73b499408928",
+      "remove_from_active_tree": true
+    },
+    {
+      "path": "scripts/_gen_3_docx.py",
+      "bytes": 2038,
+      "sha256": "0132f47ce180c2c88f528f3be073af5d93ab0318c4f152ffd139b3e6fdacce65",
+      "remove_from_active_tree": true
+    },
+    {
+      "path": "scripts/_gen_4_docx.py",
+      "bytes": 2165,
+      "sha256": "a8a17c729db95034899aaa691e7aec00b39511627e253d58213e4cb1666101bc",
+      "remove_from_active_tree": true
+    },
+    {
+      "path": "scripts/_inspect_doc.py",
+      "bytes": 1995,
+      "sha256": "4a9fa958f182053b9ba34cc07e91c508be6292958d0b6db5a463642804598825",
+      "remove_from_active_tree": true
+    },
+    {
+      "path": "scripts/_section2_1.txt",
+      "bytes": 3501,
+      "sha256": "30c111bbeab74f80e55a1d91f8940fd531500bd4ead5c43719db5d8dad5f8a78",
+      "remove_from_active_tree": true
+    },
+    {
+      "path": "scripts/_section2_2.txt",
+      "bytes": 6101,
+      "sha256": "aeeb07304fc6f3818f3f91675acf15d2d8e3b6bbc042393af03b116c5b4d17fe",
+      "remove_from_active_tree": true
+    },
+    {
+      "path": "scripts/_write_section2_1.py",
+      "bytes": 7029,
+      "sha256": "3a450962d7dfb9f287bcb4a983e08e76f3eff714a07d08664cc56a8d82f3f914",
+      "remove_from_active_tree": true
+    },
+    {
+      "path": "scripts/run_a1_attention_consistency.py",
+      "bytes": 7398,
+      "sha256": "3eb5d1bd9371ebbedea706f5120ecd6b822c8630922b8a166a0ddf870616a3ff",
+      "remove_from_active_tree": true
+    },
+    {
+      "path": "scripts/run_a1_finetune_attention.py",
+      "bytes": 9435,
+      "sha256": "def19157ef529551ed36d036030733b15d967ec731464571a1700ef634adc703",
+      "remove_from_active_tree": true
+    },
+    {
+      "path": "scripts/run_a1_repair_head_probe.py",
+      "bytes": 6770,
+      "sha256": "fb59cc6c8122255418c686103ebb6063585cac549fa316e9086fd4b494d25948",
+      "remove_from_active_tree": true
+    },
+    {
+      "path": "scripts/run_a1_sixline_experiment.py",
+      "bytes": 7190,
+      "sha256": "d9ce3596b85876e7c7a6ed8bcd7b1ff0b5c5960245a3ba51abffd41b400032e8",
+      "remove_from_active_tree": true
+    },
+    {
+      "path": "scripts/run_addressed_experiment.py",
+      "bytes": 20165,
+      "sha256": "2461b42e6cd0fae0df4ced66f5ce71010d92ab87c9138e00397667f840e59acd",
+      "remove_from_active_tree": true
+    },
+    {
+      "path": "scripts/run_awgn_metadata_experiment.py",
+      "bytes": 5828,
+      "sha256": "073502ae255b3ed29167997314439b656114a8cde1ecfda4a6c93001d11dd10e",
+      "remove_from_active_tree": true
+    },
+    {
+      "path": "scripts/run_bucket_probe.py",
+      "bytes": 12842,
+      "sha256": "92619a5461fcc92c9c3a292b7064b93c5ac6a8b3e9bda5b38716cdefa0f164d8",
+      "remove_from_active_tree": true
+    },
+    {
+      "path": "scripts/run_bucket_sweep.py",
+      "bytes": 8673,
+      "sha256": "432da6efdc9b954fe986bac828b96ba01f824e0315d93421610bc61797653a14",
+      "remove_from_active_tree": true
+    },
+    {
+      "path": "scripts/run_cliff_experiment.py",
+      "bytes": 5034,
+      "sha256": "296fcc88eb651a2bb8fe1fc9f8e3343ff62e2a2f34c70a824ef90b1a50c7a9e8",
+      "remove_from_active_tree": true
+    },
+    {
+      "path": "scripts/run_repair_ablation.py",
+      "bytes": 9798,
+      "sha256": "d1f5e4f0fe76195caa5ecb1158b88ae7dc2c8985c675af4590ca2ae1f50d4f15",
+      "remove_from_active_tree": true
+    },
+    {
+      "path": "scripts/run_repair_comparison.py",
+      "bytes": 10412,
+      "sha256": "b927d169259baf12de496093a2386fc6075aaeb7b3d27c866f13ec9a2b7a6f3e",
+      "remove_from_active_tree": true
+    },
+    {
+      "path": "scripts/run_repair_sixline_experiment.py",
+      "bytes": 12242,
+      "sha256": "7d3d7359873aa87a892c7ce1f68e2f9d206736ae0cb8160be4e615eb4d394792",
+      "remove_from_active_tree": true
+    },
+    {
+      "path": "scripts/run_repair_suite.py",
+      "bytes": 7497,
+      "sha256": "9bf21ee6ca66a2e43772bb0be8b224c61945fbc647e305d3c31c3e4f41e96259",
+      "remove_from_active_tree": true
+    },
+    {
+      "path": "scripts/run_repair_train.py",
+      "bytes": 16701,
+      "sha256": "a5796d4c135d348f2caea1a9d863928dec0be6bee80a1e978682dcd020714cd1",
+      "remove_from_active_tree": true
+    },
+    {
+      "path": "scripts/summarize_bucket_pilot.py",
+      "bytes": 11161,
+      "sha256": "1700ec0acf85fc83bea4ade74728ac24e6dbbf1d852b3bc40c512ba1c19386cf",
+      "remove_from_active_tree": true
+    },
+    {
+      "path": "scripts/visualize_attention.py",
+      "bytes": 4189,
+      "sha256": "010a6fcb4966662d4dd185b88715d79b1d411fdd1d1457abb875a8d531c3f168",
+      "remove_from_active_tree": true
+    },
+    {
+      "path": "scripts/visualize_buckets.py",
+      "bytes": 5168,
+      "sha256": "b337d507fd26785ece83bdaf0ee17386dea59cd13e04477ad78672924bd90ba9",
+      "remove_from_active_tree": true
+    },
+    {
+      "path": "scripts/visualize_cliff_cases.py",
+      "bytes": 11148,
+      "sha256": "57ff7533b44340a2cef35692dbd2bc416d50b0597da948301e1babd2e837a204",
+      "remove_from_active_tree": true
+    },
+    {
+      "path": "scripts/visualize_repair.py",
+      "bytes": 7073,
+      "sha256": "b4c3268e8301db7ff17514fe50edb940fdaadfb580bb6c737aead03a243e48a5",
+      "remove_from_active_tree": true
+    },
+    {
+      "path": "scripts/visualize_repair_arch.py",
+      "bytes": 8242,
+      "sha256": "a79497323dbdc20914fbfd3e98cf4f239022a913e052d99966c05dcdb19c3903",
+      "remove_from_active_tree": true
+    },
+    {
+      "path": "scripts/visualize_repair_cases.py",
+      "bytes": 8856,
+      "sha256": "3c70524e159953d2fd4e5c7f46d9eeb831df201c23b963e9459382c0e68c4398",
+      "remove_from_active_tree": true
+    },
+    {
+      "path": "scripts/visualize_repair_gain.py",
+      "bytes": 2336,
+      "sha256": "1002634ace7ac18846119f866aacd8149b2900d4b6be2dd94159930f61dafe54",
+      "remove_from_active_tree": true
+    },
+    {
+      "path": "scripts/visualize_ssim_dist.py",
+      "bytes": 6340,
+      "sha256": "5a4a78f6428cb1907ccc0aced6609842f88256c288267f5acfda879e356af0ab",
+      "remove_from_active_tree": true
+    },
+    {
+      "path": "src/vit_iaq_semcom/__init__.py",
+      "bytes": 204,
+      "sha256": "d94859b0e74d3048f34925265b11523957adc6de7a4c293c0288d86b0c870173",
+      "remove_from_active_tree": false
+    },
+    {
+      "path": "src/vit_iaq_semcom/a1.py",
+      "bytes": 7083,
+      "sha256": "dccb82ea5670cc3391253c605314446ea78791af3d269f743746b09498ab5ef8",
+      "remove_from_active_tree": true
+    },
+    {
+      "path": "src/vit_iaq_semcom/ablation.py",
+      "bytes": 5562,
+      "sha256": "d48273450162da1e5623c0fef86a84df48f17edac79930d932c0f01984d10b52",
+      "remove_from_active_tree": true
+    },
+    {
+      "path": "src/vit_iaq_semcom/addressed.py",
+      "bytes": 8134,
+      "sha256": "525bd802bcd3a0eaaec441fe7c0a3758630576d89c9edb4a903d1292dc9dae8b",
+      "remove_from_active_tree": true
+    },
+    {
+      "path": "src/vit_iaq_semcom/bit_allocation.py",
+      "bytes": 3193,
+      "sha256": "b130e8a04cc25672ba2495c75401a637195d2b84e722b9ff808eddb006ef7a1f",
+      "remove_from_active_tree": true
+    },
+    {
+      "path": "src/vit_iaq_semcom/bucket.py",
+      "bytes": 11498,
+      "sha256": "b0406c6aa6c4589135e849444730936534ba125a24c9cab191fd264621e0f8de",
+      "remove_from_active_tree": true
+    },
+    {
+      "path": "src/vit_iaq_semcom/channel.py",
+      "bytes": 6422,
+      "sha256": "ba746d40f9da5dc2c959e3c800a3d6f04e74f0aea95c8d304943888734222b83",
+      "remove_from_active_tree": true
+    },
+    {
+      "path": "src/vit_iaq_semcom/experiment.py",
+      "bytes": 6821,
+      "sha256": "33a3f35b78d653120e97d57ea801a575e60aba2c943c99d0cb1e53f0222b1d1d",
+      "remove_from_active_tree": true
+    },
+    {
+      "path": "src/vit_iaq_semcom/fec.py",
+      "bytes": 2383,
+      "sha256": "7680eaebe08974ce80deee85571e0b6958a3fc3afd337574c3893f5ecec6b9f3",
+      "remove_from_active_tree": true
+    },
+    {
+      "path": "src/vit_iaq_semcom/modulation.py",
+      "bytes": 1818,
+      "sha256": "608abd74cb66ee3cb405e51fd15b9f5c54a88d4599504ca939c13699eb54572f",
+      "remove_from_active_tree": true
+    },
+    {
+      "path": "src/vit_iaq_semcom/pipeline.py",
+      "bytes": 28250,
+      "sha256": "221d25449c23b34ce4408924b93def4489fe46cd033ad7592f18b7172b20d504",
+      "remove_from_active_tree": true
+    },
+    {
+      "path": "src/vit_iaq_semcom/quantization.py",
+      "bytes": 3393,
+      "sha256": "639aa574b5b42a70b671a2c605caeee9b4269e530f4ca1cee7c01cc6f4b44632",
+      "remove_from_active_tree": true
+    },
+    {
+      "path": "src/vit_iaq_semcom/repair.py",
+      "bytes": 5941,
+      "sha256": "4c4471a3733ba6b7063b38c4d974b56525ebb47808cd947b27a76e9fed4c195d",
+      "remove_from_active_tree": true
+    },
+    {
+      "path": "src/vit_iaq_semcom/repair_channel.py",
+      "bytes": 3040,
+      "sha256": "9553c3b0a5768adf6818fbe1d3943e46b65a52bbbc8bade43291e533d0c07888",
+      "remove_from_active_tree": true
+    },
+    {
+      "path": "src/vit_iaq_semcom/training.py",
+      "bytes": 2024,
+      "sha256": "c62b33b7784851c0daeea87b4323d0536c588a32a2f28d18bb9293ae910a804b",
+      "remove_from_active_tree": true
+    },
+    {
+      "path": "src/vit_iaq_semcom/vit_encoder.py",
+      "bytes": 7653,
+      "sha256": "990fd21d09efcb52362f9f7a00404485d8503993a13e8fbc7ab809263ece5486",
+      "remove_from_active_tree": true
+    },
+    {
+      "path": "tests/test_a1.py",
+      "bytes": 4780,
+      "sha256": "e2ce233f60c8777ab53cb8189d7a7a1c79ba508b76583ca0c84aa3692ec43dff",
+      "remove_from_active_tree": true
+    },
+    {
+      "path": "tests/test_addressed.py",
+      "bytes": 8262,
+      "sha256": "959d1f45d1fd4974dbdc32624278109125e4cc98a71c215348275b317c61a071",
+      "remove_from_active_tree": true
+    },
+    {
+      "path": "tests/test_bit_allocation.py",
+      "bytes": 2451,
+      "sha256": "6bcdadd54a536f9214bb89523ccaf205a81e172372ebd3c9cc12ba38b9f2d944",
+      "remove_from_active_tree": true
+    },
+    {
+      "path": "tests/test_bucket.py",
+      "bytes": 6787,
+      "sha256": "33ee045d25e8dd373380f53b99ea6427e587ee91850ed2ac8e9dfac3d30b391a",
+      "remove_from_active_tree": true
+    },
+    {
+      "path": "tests/test_channel.py",
+      "bytes": 2994,
+      "sha256": "77ae9fe4b1e083279b17e8b71f7d5a89450c5d93bb1ac0ac38da8f98911103d8",
+      "remove_from_active_tree": true
+    },
+    {
+      "path": "tests/test_experiment_contracts.py",
+      "bytes": 9063,
+      "sha256": "224607118faab4b656c2070c9c03aefa3509ce22268036cad52cb0beabaff7bb",
+      "remove_from_active_tree": true
+    },
+    {
+      "path": "tests/test_fec.py",
+      "bytes": 1900,
+      "sha256": "59fc442d012583c8ac5e3b1bae92fdcaa15be236de51fc0a886f7f5435897054",
+      "remove_from_active_tree": true
+    },
+    {
+      "path": "tests/test_modulation.py",
+      "bytes": 1584,
+      "sha256": "4147f54c2852e8937ac00f8e25c77f94653607db6556000de03fcba85a214f77",
+      "remove_from_active_tree": true
+    },
+    {
+      "path": "tests/test_pipeline.py",
+      "bytes": 4588,
+      "sha256": "64fba9a48537fbc754a90a40fb6740fe1a7894e47ea991778ed1fa3889ee538a",
+      "remove_from_active_tree": true
+    },
+    {
+      "path": "tests/test_pipeline_modes.py",
+      "bytes": 7025,
+      "sha256": "9ca46c0f0f621c9dd130971f5f69ed12829fd6425fb5d9c76b4f7c808e4901ec",
+      "remove_from_active_tree": true
+    },
+    {
+      "path": "tests/test_quantization.py",
+      "bytes": 2584,
+      "sha256": "2dc48a9817e45346c8e90e4532e9c4c8b03bc4fe9e58ec71a86df32fdbe7a3bf",
+      "remove_from_active_tree": true
+    },
+    {
+      "path": "tests/test_repair.py",
+      "bytes": 3239,
+      "sha256": "147d368a59df10ee4ccff41cbaf46812b45f70db86e88101a4cfd2dc930b4ec1",
+      "remove_from_active_tree": true
+    },
+    {
+      "path": "tests/test_repair_ablation.py",
+      "bytes": 9290,
+      "sha256": "5e644bc4052c4231d70a04b54fb7e7a3bd41a70a06f36b1dc9be08d47a633bdc",
+      "remove_from_active_tree": true
+    },
+    {
+      "path": "tests/test_repair_channels.py",
+      "bytes": 8378,
+      "sha256": "f2fcb8bbd304b9388734991522f9b957cef629067ea4499461b4fcced17073f5",
+      "remove_from_active_tree": true
+    },
+    {
+      "path": "tests/test_training_lifecycle.py",
+      "bytes": 7966,
+      "sha256": "9913476deb9038694809b8ef2dc133b9d1504a970e7e7bdb5cab6d39ed12313a",
+      "remove_from_active_tree": true
+    },
+    {
+      "path": "tests/test_vit_encoder.py",
+      "bytes": 3024,
+      "sha256": "a2a5bc2f3c9e29369535ce5d2e02c0c6bf351461400716aa0f451ab84c3a0fde",
+      "remove_from_active_tree": true
+    }
+  ]
+}

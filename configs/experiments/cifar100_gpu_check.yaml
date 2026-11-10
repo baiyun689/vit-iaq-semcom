@@ -1,0 +1,15 @@
+extends: cifar100_check.yaml
+name: cifar100-native-gpu-check
+output_dir: outputs/experiments/cifar100_gpu_check
+device: cuda
+experiment:
+  methods: [addressed]
+  budgets: [6144]
+repair:
+  variants: [none, prefix]
+  dim: 24
+  depth: 1
+training:
+  epochs: 1
+  batch_size: 2
+  grad_accum: 1

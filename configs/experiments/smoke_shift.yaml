@@ -1,0 +1,6 @@
+extends: smoke_test.yaml
+name: native-smoke-frozen-channel-shift
+output_dir: outputs/experiments/native_smoke_shift
+transmission:
+  channel: rayleigh
+  noise_mismatch_db: 2.0
